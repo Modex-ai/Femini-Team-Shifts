@@ -29,7 +29,8 @@ async function readLatest() {
 function validate(d) {
   if (!d || typeof d !== 'object') return 'data missing';
   if (!Array.isArray(d.members)) return 'members must be an array';
-  if (!d.week || typeof d.week !== 'object') return 'week missing';
+  if (!d.template || typeof d.template !== 'object') return 'template missing';
+  if (!d.weeks || typeof d.weeks !== 'object') return 'weeks missing';
   if (!d.settings || typeof d.settings !== 'object') return 'settings missing';
   if (JSON.stringify(d).length > 900_000) return 'data too large';
   return null;
@@ -51,12 +52,12 @@ export default async function handler(req, res) {
     }
 
     if (!process.env.ADMIN_PIN) {
-      return res.status(500).json({ error: 'ADMIN_PIN مش متضاف في Environment Variables على Vercel' });
+      return res.status(500).json({ error: 'ADMIN_PIN is not set in the Vercel environment variables' });
     }
     const pin = String(req.headers['x-admin-pin'] || '');
     if (pin !== String(process.env.ADMIN_PIN)) {
       await sleep(700); // slow down guessing
-      return res.status(401).json({ error: 'الـ PIN غلط' });
+      return res.status(401).json({ error: 'Wrong PIN' });
     }
 
     if (req.method === 'POST') return res.status(200).json({ ok: true });
@@ -70,7 +71,7 @@ export default async function handler(req, res) {
     const current = await readLatest();
     if (current && current.updatedAt && body.baseUpdatedAt !== current.updatedAt && !body.force) {
       return res.status(409).json({
-        error: 'حد تاني عدّل الجدول بعد ما فتحته. اعمل تحديث للصفحة الأول.',
+        error: 'Someone else saved changes first. Refresh the page, then edit again.',
         updatedAt: current.updatedAt,
       });
     }
