@@ -15,7 +15,7 @@
 @font-face{font-family:"Cormorant Garamond";font-weight:600;font-style:normal;font-display:swap;src:url(assets/fonts/cormorant-garamond-latin-600-normal.woff2) format("woff2")}
 @font-face{font-family:"Cormorant Garamond";font-weight:700;font-style:normal;font-display:swap;src:url(assets/fonts/cormorant-garamond-latin-700-normal.woff2) format("woff2")}
 :root{
-  --orange:#B9762F;
+  --orange:#B9762F; --deep:var(--plum); --pale:var(--lav); --pale-2:var(--lav-2); --pale-3:var(--lav-3); --amber:#D9C38E; --head:var(--serif);
   --plum:#24193F; --plum-2:#33245A; --brand:#4A367A; --brand-2:#6A55A8; --brand-3:#8E7BC6;
   --lav:#EEDFFF; --lav-2:#F5EEFF; --lav-3:#FAF7FF; --bg:#F7F5FB; --card:#FFFFFF;
   --ink:#1D1630; --ink-2:#3E3557; --muted:#7D7594; --soft:#ABA4BF; --line:#E7E1F1; --line-2:#F0ECF7;
@@ -25,6 +25,8 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0}
+html,body,#exportStage{font-variant-numeric:lining-nums}
+.code,.tkc,.xw,.pfk b,.pfr b,.sc,.stbl td b,.dtl .mk b{font-variant-numeric:lining-nums;font-feature-settings:"lnum" 1}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -507,6 +509,221 @@ tr.cdays .offl{text-decoration:underline dotted var(--bad);text-underline-offset
 .subm{font-size:11.5px;white-space:nowrap}.subm.ok{color:var(--ok)}.subm.late{color:var(--warn)}.subm.na{color:var(--soft)}
 .kpi .v small{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--muted);margin-left:4px}
 .cpc2.ok{color:var(--ok)}.cpc2.warn{color:var(--warn)}.cpc2.bad{color:var(--bad)}
+/* ---------- team profiles ---------- */
+.pfctl select,.pfctl input{font-size:13px;padding:7px 10px}
+.pfgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.pft2{display:block;text-align:left;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,#fff,var(--pale-3));padding:14px;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s;font:inherit;color:inherit}
+.pft2:hover{border-color:var(--brand-3);box-shadow:0 8px 24px rgba(36,25,63,.08);transform:translateY(-1px)}
+.pft2 .h{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.pft2 .h .av{width:36px;height:36px;font-size:12.5px;box-shadow:none}
+.pft2 .h b{display:block;font-size:14px}.pft2 .h small{display:block;font-size:11.5px;color:var(--muted)}
+.pft2 .rb{margin-left:auto;background:var(--warn-bg);color:var(--warn);font-size:11px;font-weight:800;border-radius:999px;padding:2px 8px}
+.mix{display:flex;height:8px;border-radius:9px;overflow:hidden;gap:2px;background:var(--line-2)}
+.mix.big{height:14px;margin-bottom:12px}
+.mix i{display:block;min-width:3px}
+.pft2 .ln{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--ink-2);margin:6px 0 10px}
+.pft2 .ln:last-child{margin-bottom:0}
+.pft2 .ln span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.pft2 .ln i{width:8px;height:8px;border-radius:3px}
+.modal.pfm{max-width:1180px}
+.pfm .m-head select,.pfm .m-head input{font-size:12.5px;padding:6px 9px}
+.pfk{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
+.pfk>div{border:1px solid var(--line);border-radius:12px;padding:10px 13px;background:var(--pale-3)}
+.pfk span{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.pfk b{display:block;font-family:var(--serif);font-variant-numeric:lining-nums;font-size:27px;font-weight:600;color:var(--deep);line-height:1.1;margin-top:2px}
+.pfk small{display:block;font-size:11.5px;color:var(--muted)}
+.pf2c{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.pf2c>.panel{margin-bottom:14px}
+.pf-r small{display:block;font-size:11px;color:var(--muted)}
+table.pft{width:100%}
+table.pft td b{font-family:var(--sans);font-size:13px;font-weight:800}
+table.pft td,table.pft th{white-space:nowrap}
+table.pft td:not(:first-child),table.pft th:not(:first-child){text-align:right}
+.dtl table.pft td:nth-child(2),.dtl table.pft th:nth-child(2){text-align:right}
+.dtl table.pfrl td:nth-child(2),.dtl table.pfrl th:nth-child(2){text-align:left}
+table.pfrl td:nth-child(3),table.pfrl th:nth-child(3){text-align:left}
+.dot{display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--c);margin-right:7px;vertical-align:middle}
+table.pfw{width:100%;border-collapse:separate;border-spacing:4px;font-size:12.5px}
+table.pfw th{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;text-align:center;padding:4px}
+table.pfw td{text-align:center;padding:0}
+table.pfw td:first-child{text-align:left;white-space:nowrap;font-weight:600;padding-right:8px}
+table.pfw td span.dot{display:inline-block;padding:0;border-radius:3px}
+.dtl table.pfw td{text-align:center;padding:0;border-bottom:none;vertical-align:middle}
+.dtl table.pfw td:first-child{text-align:left;padding-right:8px;width:130px}
+table.pfw td span.c{display:block;border-radius:8px;padding:8px 0;font-weight:700;font-variant-numeric:tabular-nums}
+.pfr{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
+.pfr>div{border:1px solid var(--line);border-radius:12px;padding:9px 11px;background:#fff}
+.pfr>div.g{background:#F3FAF6;border-color:#CFE7D8}.pfr>div.r{background:#FFF7F8;border-color:#EFC6CB}
+.pfr span{display:block;font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.pfr b{display:block;font-family:var(--serif);font-variant-numeric:lining-nums;font-size:22px;font-weight:600;color:var(--deep);margin-top:2px;white-space:nowrap}
+.pfr b.pos,.pfr b.neg{font-size:17px;font-family:var(--sans);font-weight:800;margin-top:6px}
+.pfr small{display:block;font-size:10.5px;color:var(--muted)}
+.pfrl{margin-top:12px}
+/* profile image */
+.pfi-b{background:#FBF9FE;color:var(--ink);border-radius:20px;padding:30px 32px 20px;font-size:15px}
+.pfi-b .panel{border:1px solid #E7E1F1;border-radius:14px;padding:16px 18px;margin-bottom:16px;background:#fff}
+.pfi-b .panel h4{margin:0 0 12px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#A8864A;font-weight:800}
+.pfi-b .pf-n{font-size:38px}.pfi-b .pf-h .av{width:66px;height:66px;font-size:22px}.pfi-b .pf-h .muted{font-size:15px}
+.pfi-b .pfk b{font-size:32px}.pfi-b .pfk span{font-size:11px}.pfi-b .pfk small{font-size:13px}
+.pfi-b table.stbl{font-size:14.5px}.pfi-b table.pfw{font-size:15px}
+.pfi-b .pf2c>.panel{margin-bottom:16px}
+@media (max-width:1000px){ .pfk{grid-template-columns:repeat(2,1fr)} .pf2c{grid-template-columns:1fr} .pfr{grid-template-columns:repeat(4,1fr)} }
+@media (max-width:640px){ .pfr{grid-template-columns:repeat(2,1fr)} .pfm .m-head{flex-wrap:wrap} }
+/* ---------- tasks ---------- */
+.banner.ok{background:var(--ok-bg);color:var(--ok);border:1px solid #CFE7D8}
+.kpi .v.warn{color:var(--warn)}
+.chip.warnc:not(.active){border-color:#EFC6CB;color:var(--bad);background:#FFF6F7}
+textarea{border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:#fff;font-size:13.5px;resize:vertical;text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink);line-height:1.6;width:100%}
+textarea:focus{outline:3px solid var(--pale);border-color:var(--brand-3)}
+.pri{display:inline-flex;align-items:center;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;padding:3px 8px;white-space:nowrap}
+.pri.urgent{background:#7A1F2A;color:#fff}.pri.high{background:#FBE7CF;color:#8A4E0B}.pri.normal{background:var(--pale-2);color:var(--brand)}.pri.low{background:var(--line-2);color:var(--muted)}
+.tks{display:inline-flex;font-size:11px;font-weight:700;border-radius:999px;padding:4px 11px;white-space:nowrap}
+.tks.as{background:#E3ECF8;color:#2F5A8A}.tks.pr{background:var(--warn-bg);color:var(--warn)}.tks.rv{background:#F3E8FB;color:#6B3A8A}.tks.ap{background:var(--ok-bg);color:var(--ok)}.tks.rt{background:var(--bad-bg);color:var(--bad)}.tks.cx{background:var(--line-2);color:var(--muted)}
+.stars{display:inline-flex;gap:1px;font-style:normal;letter-spacing:0;vertical-align:middle}
+.stars i{font-style:normal;color:#DED9CC;font-size:13px}.stars i.on{color:var(--gold)}
+.stars.big i{font-size:22px}
+.tkl{display:flex;flex-direction:column;gap:8px}
+.tkr{display:grid;grid-template-columns:120px minmax(220px,1fr) 170px 190px 170px 110px;gap:14px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:12px 16px;background:#fff;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s}
+.tkr:hover{border-color:var(--brand-3);box-shadow:0 6px 20px rgba(36,25,63,.07);transform:translateY(-1px)}
+.tkr.od{border-left:4px solid var(--bad);background:linear-gradient(90deg,#FFF8F8,#fff 30%)}
+.tkr .tc{display:flex;flex-direction:column;gap:5px;align-items:flex-start}
+.code{font-family:var(--head);font-weight:600;font-size:13px;letter-spacing:.04em;color:var(--gold)}
+.tkr .tt b{display:block;font-size:14px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;unicode-bidi:plaintext;text-align:start}
+.tkr .tt small{display:block;color:var(--muted);font-size:11.5px;margin-top:3px}
+.tkr .who{display:flex;align-items:center;gap:9px;font-size:13px;min-width:0}
+.tkr .who .av{width:30px;height:30px;font-size:11px;box-shadow:none}
+.tkr .who b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tkr .td b,.tkr .td small{display:block;font-size:12.5px}.tkr .td small{color:var(--muted);font-size:11px;margin-top:2px}
+.due.bad{color:var(--bad)}.due.warn{color:var(--warn)}
+.tkr .ts small{display:block;font-size:11px;color:var(--bad);margin-top:3px}
+.tkr .tr2{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.tkr .pf{font-size:11.5px;color:var(--muted);font-weight:600}
+table.tkp{min-width:1000px}
+.scw{display:flex;flex-direction:column;align-items:flex-end;line-height:1.1}
+.sc{font-variant-numeric:lining-nums;font-family:var(--serif);font-size:24px;font-weight:600;color:var(--deep)}
+.sc.ok,.scw small.ok{color:var(--ok)}.sc.warn,.scw small.warn{color:var(--warn)}.sc.bad,.scw small.bad{color:var(--bad)}
+.scw small{font-size:10.5px;font-weight:700}
+.modal.tkf{max-width:760px}
+.tkmem{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.tkmem label{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:5px 14px 5px 5px;font-size:13px;font-weight:600;cursor:pointer;background:#fff;transition:all .12s}
+.tkmem label:has(input:checked){border-color:var(--brand);background:var(--pale-2);color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
+.tkmem input{display:none}
+.tkmem .av{width:28px;height:28px;font-size:10.5px;box-shadow:none}
+.tkgrid{display:grid;grid-template-columns:auto minmax(0,1fr) 140px;gap:12px;margin-top:12px;align-items:end}
+.tkgrid .seg{margin-top:0}
+.modal.tkm{max-width:1220px}
+.m-head .code{color:var(--amber);font-size:15px;margin-right:6px}
+.tkd{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px;align-items:start}
+.tkd .panel{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:14px;background:#fff}
+.tkd .panel h4{margin:0 0 10px;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:800}
+.tkd .panel.rvw{border-color:#E4D3F0;background:linear-gradient(180deg,#FDFAFF,#fff)}
+.tkh{margin-bottom:14px}
+.tkh h2{font-variant-numeric:lining-nums;font-family:var(--serif);font-size:30px;font-weight:600;color:var(--deep);margin:8px 0 0;line-height:1.15;unicode-bidi:plaintext;text-align:start}
+.tkmeta{display:grid;grid-template-columns:repeat(2,1fr);gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.tkmeta>div{padding:10px 14px;border-bottom:1px solid var(--line-2);border-right:1px solid var(--line-2);background:var(--pale-3)}
+.tkmeta>div:nth-child(2n){border-right:none}
+.tkmeta>div:nth-last-child(-n+2){border-bottom:none}
+.tkmeta>div>span{display:block;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.tkmeta b{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13.5px;font-weight:600;margin-top:3px}
+.tkmeta .who{display:inline-flex;align-items:center;gap:8px}.tkmeta .av{width:24px;height:24px;font-size:9.5px;box-shadow:none}
+.tkp{white-space:pre-line;font-size:13.5px;line-height:1.75;color:var(--ink-2);margin:0;unicode-bidi:plaintext;text-align:start}
+.tkck{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed var(--line-2);font-size:13.5px;cursor:pointer}
+.tkck:last-child{border-bottom:none}
+.tkck input{margin-top:3px;accent-color:var(--brand);width:16px;height:16px}
+.tkck.d span{color:var(--muted);text-decoration:line-through}
+.tkck span{unicode-bidi:plaintext;text-align:start;flex:1}
+.rate{display:flex;align-items:center;gap:4px}
+.rate button{border:none;background:none;font-size:30px;line-height:1;color:#DED9CC;padding:0 2px;transition:transform .12s,color .12s}
+.rate button:hover{transform:scale(1.15)}.rate button.on{color:var(--gold)}
+.rate span{margin-left:10px;font-size:13px;font-weight:700;color:var(--ink-2)}
+.tl>div{display:grid;grid-template-columns:14px 1fr;gap:10px;padding:0 0 12px;position:relative}
+.tl>div:not(:last-child)::before{content:"";position:absolute;left:5px;top:14px;bottom:0;width:2px;background:var(--line-2)}
+.tl i{width:12px;height:12px;border-radius:50%;background:var(--brand-3);margin-top:3px;box-shadow:0 0 0 3px #fff}
+.tl i.approved{background:var(--ok)}.tl i.returned,.tl i.cancelled{background:var(--bad)}.tl i.done{background:#8B5CB0}.tl i.created{background:var(--gold)}
+.tl b{display:block;font-size:13px}.tl span{display:block;font-size:12.5px;color:var(--ink-2);unicode-bidi:plaintext}.tl small{display:block;font-size:11px;color:var(--muted);margin-top:1px}
+.tkprev{border-radius:12px;overflow:hidden;background:var(--deep);width:100%}
+.tkprev-in{width:1080px;transform:scale(var(--k,.44));transform-origin:top left}
+/* the task image (1080px wide) */
+.tkc{width:1080px;background:linear-gradient(165deg,#22173C 0%,#33245A 60%,#4A367A 100%);font-family:var(--sans);padding:46px 44px 36px;color:#fff}
+.tkc-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:30px}
+.tkc-h img{height:96px;display:block}
+.tkc-h .r{text-align:right;color:var(--amber);font-family:var(--head);font-size:21px;font-weight:500}
+.tkc-h .r small{display:block;font-family:var(--sans);font-size:13px;font-weight:800;letter-spacing:.26em;text-transform:uppercase;color:var(--orange);margin-bottom:6px}
+.tkc-b{background:#FBF9FE;color:var(--ink);border-radius:22px;padding:34px 38px 30px}
+.tkc-top{display:flex;justify-content:space-between;align-items:center}
+.tkc-top .code{font-size:22px;color:#A8864A;letter-spacing:.08em}
+.tkc-top .pri{font-size:13px;padding:7px 14px;border-radius:999px;letter-spacing:.12em}
+.tkc h1{font-variant-numeric:lining-nums;font-family:var(--serif);font-size:46px;font-weight:600;color:var(--deep);line-height:1.15;margin:14px 0 24px;unicode-bidi:plaintext;text-align:start}
+.tkc-meta{display:grid;grid-template-columns:1.2fr 1fr 1fr;border:1px solid #E7E1F1;border-radius:16px;background:#fff;margin-bottom:22px}
+.tkc-meta>div{padding:16px 20px;border-left:1px solid #E7E1F1}.tkc-meta>div:first-child{border-left:none}
+.tkc-meta span{display:block;font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#8E80A8}
+.tkc-meta b{display:flex;align-items:center;gap:10px;font-family:var(--head);font-size:23px;font-weight:600;color:var(--deep);margin-top:6px}
+.tkc-meta small{display:block;font-size:14px;color:var(--muted);margin-top:4px}
+.tkc-meta .av{width:34px;height:34px;font-size:12px;box-shadow:none;font-style:normal;font-family:var(--sans)}
+.tkc-s{margin-bottom:20px}
+.tkc-s h4{font-size:13px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#A8864A;margin:0 0 10px}
+.tkc-s p{white-space:pre-line;font-size:20px;line-height:1.75;color:var(--ink-2);margin:0;unicode-bidi:plaintext;text-align:start}
+.tkc-s ul{list-style:none;margin:0;padding:0}
+.tkc-s li{display:flex;align-items:flex-start;gap:14px;font-size:19.5px;line-height:1.5;padding:10px 0;border-bottom:1px dashed #E7E1F1;unicode-bidi:plaintext}
+.tkc-s li:last-child{border-bottom:none}
+.tkc-s li i{flex:none;width:22px;height:22px;border:2px solid var(--brand-2);border-radius:6px;margin-top:3px}
+.tkc-a{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.tkc-a img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;border:1px solid #E7E1F1;display:block;background:#fff}
+.tkc-am{font-size:15px!important;color:var(--muted)!important;margin-top:10px!important}
+.tkc-n{background:#4A367A0D;border:1px solid #E4DAF5;border-radius:14px;padding:14px 18px;font-size:15.5px;color:var(--brand);line-height:1.6}
+.tkc-n span{display:block;font-size:16px;margin-top:4px;text-align:right}
+.tkc-f{display:flex;justify-content:space-between;margin-top:20px;font-size:13px;color:rgba(255,255,255,.5)}
+@media (max-width:1100px){
+  .tkr{grid-template-columns:110px 1fr 160px;row-gap:8px}
+  .tkr .td,.tkr .ts,.tkr .tr2{grid-column:auto}
+  .tkd{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .tkr{grid-template-columns:1fr auto;padding:12px}
+  .tkr .tc{flex-direction:row;grid-column:1/-1}
+  .tkr .tt{grid-column:1/-1}
+  .tkr .tr2{align-items:flex-end}
+  .tkgrid{grid-template-columns:1fr 1fr}
+  .tkmeta{grid-template-columns:1fr}
+  .tkmeta>div{border-right:none!important;border-bottom:1px solid var(--line-2)!important}
+}
+/* Fémini additions: profiles, image sheets, notices */
+@media (max-width:640px){ .pfm .pf-h{flex-wrap:wrap} .pfm .pf-r{width:100%;text-align:left;margin-left:0} .pfm .pf-r b{font-size:18px} .req .st2{flex-wrap:wrap;justify-content:flex-end} }
+.pfk span .dot{width:8px;height:8px;margin-right:5px}
+.pfln{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--ink-2);margin-top:10px}
+.pfln b{font-weight:800}
+.tkf textarea,.tkm textarea{font-family:var(--sans)}
+.xw{background:linear-gradient(165deg,#22173C 0%,#33245A 60%,#4A367A 100%);color:#fff;font-family:var(--sans);padding:48px 48px 40px}
+.xw .xh{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.xw .xh img{height:104px;display:block}
+.xw .xh .r{text-align:right;font-family:var(--serif);font-size:40px;font-weight:600;color:#fff;line-height:1.1;font-feature-settings:"lnum" 1}
+.xw .xh .r .ey{font-family:var(--sans);font-size:13px;font-weight:800;letter-spacing:.3em;text-transform:uppercase;color:#D9C38E;margin-bottom:8px}
+.xw .xh .r small{display:block;font-family:var(--sans);font-size:16px;font-weight:600;color:rgba(255,255,255,.68);margin-top:8px}
+.xw .xr{background:#FBF9FE;color:var(--ink);border-radius:18px;padding:26px 30px;margin-top:20px}
+.xw .xr h3{font-family:var(--serif);font-size:30px;font-weight:600;color:var(--plum);margin:0 0 12px;font-feature-settings:"lnum" 1}
+.xw .xr table{width:100%;border-collapse:collapse;font-size:16px}
+.xw .xr th{text-align:left;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:10px;border-bottom:2px solid var(--line);font-weight:700}
+.xw .xr td{padding:12px 10px;border-bottom:1px solid var(--line-2);vertical-align:top}
+.xw .xr tr.tot td{background:var(--lav-2)}
+.xw .xf{display:flex;justify-content:space-between;margin-top:24px;font-size:14px;color:rgba(255,255,255,.55)}
+.xw .tp,.xw .ss,.xw .ref{font-size:13px}
+.xn .xr{padding:34px 38px}
+.xn-top{display:flex;align-items:center;gap:22px;padding-bottom:24px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+.xn-p{display:flex;align-items:center;gap:16px}
+.xn-p .av{width:68px;height:68px;font-size:23px;font-style:normal;box-shadow:none}
+.xn-p b{display:block;font-family:var(--serif);font-size:36px;font-weight:600;color:var(--plum);line-height:1.1}
+.xn-p small{display:block;font-size:16px;color:var(--muted)}
+.xn-sw{font-size:34px;color:var(--gold)}
+.xn-amt{margin-left:auto;text-align:right;border-radius:16px;padding:14px 22px}
+.xn-amt span{display:block;font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;opacity:.8}
+.xn-amt b{display:block;font-size:34px;font-weight:800;margin-top:2px;white-space:nowrap}
+.xn-amt.bonus{background:var(--ok-bg);color:var(--ok)}.xn-amt.deduction{background:var(--bad-bg);color:#8A1D33}
+table.xn-t th{width:190px;border-bottom:1px solid var(--line-2)!important;padding:16px 10px!important;vertical-align:top}
+table.xn-t td{font-size:20px;padding:14px 10px!important;line-height:1.5}
+table.xn-t .ss{font-size:15px}
+.xn-by{margin-top:18px;font-size:14px;color:var(--muted)}
+.req .st2 .ricon{border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 8px;font-size:12px;font-weight:700;color:var(--brand)}
+.req .st2 .ricon:hover{border-color:var(--brand-3)}
 @media (max-width:900px){
   .rqform{grid-template-columns:1fr 1fr}
   .rqrow{grid-template-columns:1fr 1fr}
@@ -564,7 +781,7 @@ tr.cdays .offl{text-decoration:underline dotted var(--bad);text-underline-offset
       <button class="btn light" id="adminBtn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span>Manage</span></button>
     </div>
   </div>
-  <div class="wrap viewrow"><nav class="views"><button class="active" data-v="ops" data-act="view"><svg class="ico lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>Operations</button><button data-v="reports" data-act="view"><svg class="ico lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/></svg>Team Reports</button></nav></div>
+  <div class="wrap viewrow"><nav class="views"><button class="active" data-v="ops" data-act="view"><svg class="ico lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>Operations</button><button data-v="reports" data-act="view"><svg class="ico lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/></svg>Team Reports</button><button data-v="tasks" data-act="view"><svg class="ico lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>Tasks</button></nav></div>
 </header>
 
 <main class="wrap">
@@ -620,8 +837,16 @@ tr.cdays .offl{text-decoration:underline dotted var(--bad);text-underline-offset
 
   <section class="card">
     <div class="sh">
+      <div><div class="eyebrow">Analytics</div><h2>Team Profiles</h2><div class="sub" id="pfSub"></div></div>
+      <div class="row pfctl" id="pfCtl"></div>
+    </div>
+    <div class="pfgrid" id="profiles"></div>
+  </section>
+
+  <section class="card">
+    <div class="sh">
       <div><div class="eyebrow">After the schedule was sent</div><h2 id="reqTitle">Excuses, Shifts, Bonuses &amp; Deductions</h2><div class="sub" id="reqSub"></div></div>
-      <button class="btn sm" id="reqAdd">+ Add record</button>
+      <div class="row"><button class="btn sm" data-act="recImg" data-v="week">⤓ Week image</button><button class="btn sm" data-act="recImg" data-v="month">⤓ Month image</button><button class="btn sm" id="reqAdd">+ Add record</button></div>
     </div>
     <div id="reqList"></div>
   </section>
@@ -634,6 +859,7 @@ tr.cdays .offl{text-decoration:underline dotted var(--bad);text-underline-offset
   </section>
 </div>
  <div id="repView" class="hidden"></div>
+ <div id="tkView" class="hidden"></div>
 </main>
 
 <div id="exportStage"></div>
@@ -906,7 +1132,7 @@ async function save() {
 
 /* ============================ render ============================ */
 function renderAll() {
-  renderHeader(); renderKpis(); renderBanners(); renderLive(); renderTimeline(); renderWeek(); renderPeople(); renderRequests(); renderLog(); renderSaveBar(); renderReports();
+  renderHeader(); renderKpis(); renderBanners(); renderLive(); renderTimeline(); renderWeek(); renderPeople(); renderProfiles(); renderRequests(); renderLog(); renderSaveBar(); renderReports();
   document.querySelectorAll(".admin-only").forEach((el) => el.classList.toggle("hidden", !S.draft));
   if (S.admin.open) renderAdmin();
 }
@@ -1053,7 +1279,7 @@ function renderPeople() {
     }).join("");
     return `<div class="pc" style="--c:${esc(m.color)}"><div class="pc-h"><div class="av">${esc(initials(m.name))}</div><div><div class="n">${esc(m.name)}</div><div class="r">${esc(m.role || "")}</div></div><div class="h"><b>${hrs(p.work)}</b><small>this week</small></div></div>
       <ul>${rows}</ul>
-      <div class="acts"><button class="btn sm primary" data-act="cardSave" data-id="${esc(m.id)}">Save card</button>${canShareFiles() ? `<button class="btn sm" data-act="cardShare" data-id="${esc(m.id)}">Share</button>` : ""}</div></div>`;
+      <div class="acts"><button class="btn sm primary" data-act="cardSave" data-id="${esc(m.id)}">Save card</button><button class="btn sm" data-act="pfOpen" data-id="${esc(m.id)}">Profile</button>${canShareFiles() ? `<button class="btn sm" data-act="cardShare" data-id="${esc(m.id)}">Share</button>` : ""}</div></div>`;
   }).join("");
 }
 function renderSaveBar() {
@@ -1193,7 +1419,7 @@ function renderRequests() {
       <div><div class="tt"><span class="tp ${r.type}">${REQ_TYPES[r.type] || r.type}</span>${esc(reqTitle(D, r))}${r.ref ? `<span class="ref">${esc(r.ref)}</span>` : ""}${r.type === "swap" && r.applied ? ` <span class="chip-s pub">Applied to schedule</span>` : ""}${(r.attachments || []).length ? `<span class="ref">📎 ${r.attachments.length}</span>` : ""}</div>
         ${adj ? `<div class="dd"><b>Reason:</b> ${esc(r.reason || "—")}${r.details ? " — " + esc(r.details) : ""}</div>` : r.details ? `<div class="dd">${esc(r.details)}</div>` : ""}
         ${attThumbs(r)}${r.createdBy ? `<div class="ref" style="margin-top:4px">Logged by ${esc(r.createdBy)}</div>` : ""}</div>
-      <div class="st2 row" style="gap:14px">${adj ? `<span class="amt ${r.type}">${ADJ[r.type].sign} ${esc(dedText(r))}</span>` : ""}<span class="ss ${stClass(r)}">${stLabel(r)}</span></div></div>`;
+      <div class="st2 row" style="gap:14px">${adj ? `<span class="amt ${r.type}">${ADJ[r.type].sign} ${esc(dedText(r))}</span>` : ""}<span class="ss ${stClass(r)}">${stLabel(r)}</span><button class="ricon" data-act="recOne" data-r="${esc(r.id)}" title="Download this record as an image">⤓ Image</button>${canShareFiles() ? `<button class="ricon" data-act="recOneShare" data-r="${esc(r.id)}">Share</button>` : ""}</div></div>`;
   }).join("")}</div>` : `<div class="empty">No excuses, shift changes, deductions or bonuses for this week.</div>`);
 }
 
@@ -1932,9 +2158,11 @@ function showView(v) {
   RS.view = v;
   $("#opsView").classList.toggle("hidden", v !== "ops");
   $("#repView").classList.toggle("hidden", v !== "reports");
+  $("#tkView").classList.toggle("hidden", v !== "tasks");
   document.querySelectorAll(".views button").forEach((b) => b.classList.toggle("active", b.dataset.v === v));
-  history.replaceState(null, "", v === "reports" ? "#reports" : location.pathname + location.search);
-  if (v === "reports") { renderReports(); if (!RS.raw && !RS.loading) loadReports(); }
+  history.replaceState(null, "", v === "reports" || v === "tasks" ? "#" + v : location.pathname + location.search);
+  if (v === "reports") { renderReports(); if (!RS.raw && !RS.loading) loadReports(); if (!TK.list && S.me) loadTasks(true); }
+  if (v === "tasks") { renderTasks(); if (S.me) loadTasks(!!TK.list); }
   window.scrollTo({ top: 0 });
 }
 function sourcesEditor(D) {
@@ -1958,6 +2186,636 @@ function sourcesEditor(D) {
 }
 
 
+
+/* ============================ team member profiles (shift mix · shift slots · conduct · reports · tasks) ============================ */
+// Fémini has no desks, so each shift is classified by when it starts (Cairo time) and by its exact time slot.
+const BANDS = [
+  { id: "morning", name: "Morning", color: "#C99A3E", hint: "starts 5 AM – 1 PM" },
+  { id: "evening", name: "Evening", color: "#B0578D", hint: "starts 1 PM – 9 PM" },
+  { id: "night", name: "Night", color: "#2F3E7A", hint: "starts 9 PM – 5 AM" },
+];
+const OFF_C = "#CFC6E0", EXTRA_C = "#8E7BC6";
+const wallMin = (abs) => ((Math.round(abs) % 1440) + 1440) % 1440;
+const bandOf = (b) => { const m = wallMin(b.s); return m >= 300 && m < 780 ? BANDS[0] : m >= 780 && m < 1260 ? BANDS[1] : BANDS[2]; };
+const slotOf = (b) => `${fmtT(b.s, 1)} – ${fmtT(b.e, 1)}`;
+const hLen = (b) => Math.round(((b.e - b.s) / 60) * 10) / 10;
+const PF = { period: "thisMonth", from: "", to: "", sel: null };
+const PFPER = [["thisWeek", "This week"], ["lastWeek", "Last week"], ["thisMonth", "This month"], ["lastMonth", "Last month"], ["last90", "Last 90 days"], ["thisYear", "This year"], ["all", "All time"], ["custom", "Custom range"]];
+const PF_IDX = (D) => { const s = +D.settings.weekStart || 0; return Array.from({ length: 7 }, (_, k) => (s + k) % 7); };
+function schedBounds(D) { const ks = Object.keys(D.weeks).sort(); return ks.length ? [dIdx(ks[0]), dIdx(ks[ks.length - 1]) + 6] : [curIdx(), curIdx()]; }
+function pfRange() {
+  const D = V(), t = curIdx(), d = new Date(t * 864e5), y = d.getUTCFullYear(), mo = d.getUTCMonth();
+  let a, b;
+  switch (PF.period) {
+    case "thisWeek": a = wkStart(D, t); b = a + 6; break;
+    case "lastWeek": a = wkStart(D, t) - 7; b = a + 6; break;
+    case "lastMonth": a = U0(y, mo - 1, 1); b = U0(y, mo, 0); break;
+    case "last90": a = t - 89; b = t; break;
+    case "thisYear": a = U0(y, 0, 1); b = U0(y, 11, 31); break;
+    case "all": [a, b] = schedBounds(D); break;
+    case "custom": a = PF.from ? dIdx(PF.from) : t - 29; b = PF.to ? dIdx(PF.to) : t; if (b < a) [a, b] = [b, a]; break;
+    default: a = U0(y, mo, 1); b = U0(y, mo + 1, 0);
+  }
+  return [a, b, t];
+}
+const onSched = (D, mid, i) => { const ws = wkStart(D, i); return !!D.weeks[iDate(ws)] && D.weeks[iDate(ws)].memberIds.includes(mid); };
+// Everything the schedule says about one person between a and b (days after today are "planned", not counted)
+function memberProfile(D, m, a, b, t) {
+  const end = Math.min(b, t);
+  const P = { sched: 0, work: 0, off: 0, min: 0, brk: 0, shifts: 0, extra: 0, extraMin: 0, doubles: 0, byBand: {}, bySlot: {}, byLen: {}, wd: Array.from({ length: 7 }, () => ({})), months: {}, planned: 0, plannedOff: 0, streak: 0, first: null, last: null };
+  let run = 0;
+  for (let i = a; i <= b; i++) {
+    if (!onSched(D, m.id, i)) { run = 0; continue; }
+    const bl = blocksFor(D, i).filter((x) => x.member === m.id);
+    if (i > end) { if (bl.length) P.planned++; else P.plannedOff++; continue; }
+    P.sched++; if (P.first == null) P.first = i; P.last = i;
+    const mk = iDate(i).slice(0, 7), M = (P.months[mk] = P.months[mk] || { sched: 0, work: 0, off: 0, min: 0, extra: 0, byBand: {}, bySlot: {} });
+    const w = P.wd[wdOf(i)];
+    M.sched++;
+    if (!bl.length) { P.off++; M.off++; w.off = (w.off || 0) + 1; run = 0; continue; }
+    P.work++; M.work++; run++; P.streak = Math.max(P.streak, run);
+    const reg = bl.filter((x) => !x.extra), main = (reg.length ? reg : bl).slice().sort((x, y) => y.e - y.s - (x.e - x.s))[0], bd = bandOf(main);
+    const B = (P.byBand[bd.id] = P.byBand[bd.id] || { days: 0, min: 0 });
+    B.days++; M.byBand[bd.id] = (M.byBand[bd.id] || 0) + 1; w[bd.id] = (w[bd.id] || 0) + 1;
+    if (reg.length > 1) P.doubles++;
+    for (const x of bl) {
+      P.shifts++; P.min += x.work; M.min += x.work; B.min += x.work; P.brk += x.e - x.s - x.work;
+      if (x.extra) { P.extra++; P.extraMin += x.work; M.extra++; continue; }
+      const sl = slotOf(x), Q = (P.bySlot[sl] = P.bySlot[sl] || { days: 0, min: 0, band: bandOf(x), h: hLen(x), s: wallMin(x.s) });
+      Q.days++; Q.min += x.work; M.bySlot[sl] = (M.bySlot[sl] || 0) + 1;
+      const L = (P.byLen[hLen(x)] = P.byLen[hLen(x)] || { n: 0, min: 0 }); L.n++; L.min += x.work;
+    }
+  }
+  // all-time first / last week on the schedule
+  let f = null, l = null;
+  for (const k of Object.keys(D.weeks).sort()) { if (!D.weeks[k].memberIds.includes(m.id)) continue; const ws = dIdx(k); if (f == null) f = ws; l = ws + 6; }
+  P.since = f; P.until = l;
+  // records
+  const mine = (r) => r.member === m.id || (r.type === "swap" && r.withMember === m.id);
+  const inR = (r) => { const i = dIdx(r.date), j = r.withDate ? dIdx(r.withDate) : i; return (i >= a && i <= b) || (j >= a && j <= b); };
+  P.recs = (D.requests || []).filter((r) => mine(r) && inR(r)).sort((x, y) => x.date.localeCompare(y.date));
+  const live = P.recs.filter((r) => r.status !== "rejected");
+  const cnt = (ty) => live.filter((r) => r.type === ty).length;
+  P.rc = { excuse: cnt("excuse"), late: cnt("late"), early: cnt("early"), dayoff: cnt("dayoff"), swap: cnt("swap"), other: cnt("other"), rejected: P.recs.length - live.length, pending: live.filter((r) => r.status === "pending").length };
+  const tot = (ty) => live.filter((r) => r.type === ty && r.member === m.id).reduce((x, r) => ({ n: x.n + 1, amount: x.amount + (+r.amount || 0), days: x.days + (+r.days || 0) }), { n: 0, amount: 0, days: 0 });
+  P.bonus = tot("bonus"); P.ded = tot("deduction");
+  P.incidents = P.rc.excuse + P.rc.late + P.rc.early + P.ded.n;
+  return P;
+}
+const pct0 = (x) => (x == null || !isFinite(x) ? "—" : Math.round(x * 100) + "%");
+const mixBar = (segs, big) => { const tot = segs.reduce((x, s) => x + s.v, 0); return `<div class="mix ${big ? "big" : ""}">${tot ? segs.filter((s) => s.v).map((s) => `<i style="flex:${s.v};background:${esc(s.c)}" title="${esc(s.l)} · ${s.v}"></i>`).join("") : "<i style='flex:1;background:var(--line-2)'></i>"}</div>`; };
+// slot colour: the band's colour, a little lighter for each further slot in the same band
+function slotColors(P) {
+  const out = {}, n = {};
+  for (const [k, v] of Object.entries(P.bySlot).sort((x, y) => y[1].days - x[1].days)) { const j = (n[v.band.id] = (n[v.band.id] || 0) + 1) - 1; out[k] = j ? `color-mix(in srgb,${v.band.color} ${Math.max(35, 100 - j * 22)}%,#fff)` : v.band.color; }
+  return out;
+}
+function profileBody(D, m, a, b, t, img) {
+  const P = memberProfile(D, m, a, b, t);
+  const bands = BANDS.filter((x) => P.byBand[x.id]);
+  const slots = Object.entries(P.bySlot).sort((x, y) => y[1].days - x[1].days), sc = slotColors(P);
+  const per = PF.period === "all" ? "All time" : rngTxt(a, b), W = P.work || 1;
+  let h = `<div class="pf-h"><div class="av" style="--c:${esc(m.color)}">${esc(initials(m.name))}</div><div style="min-width:0"><div class="pf-n">${esc(m.name)}</div>
+    <div class="muted">${m.role ? esc(m.role) + " · " : ""}${P.since != null ? `On the schedule since ${dmy(P.since, 1)} · ${tenure(P.since, Math.min(t, P.until))}` : "Not on any schedule yet"}</div></div>
+    <div class="pf-r"><span>Period</span><b>${per}</b>${P.planned ? `<small>+ ${P.planned} planned shift day${P.planned === 1 ? "" : "s"} after today</small>` : ""}</div></div>`;
+  if (!P.sched) return h + `<div class="empty">No schedule days for ${esc(m.name)} in this period${a > t ? " yet" : ""}.</div>`;
+  const bt = (id) => (P.byBand[id] || {}).days || 0;
+  h += `<div class="pfk">
+    <div><span>Days on schedule</span><b>${P.sched}</b><small>up to ${dmy(Math.min(b, t))}</small></div>
+    <div><span>Working days</span><b>${P.work}</b><small>${pct0(P.work / P.sched)} of her days</small></div>
+    <div><span>Days off</span><b>${P.off}</b><small>${pct0(P.off / P.sched)} of her days</small></div>
+    <div><span>Working hours</span><b>${hrs(P.min)}</b><small>${hrs(P.min / W)} per work day · breaks excluded</small></div>
+    <div><span>Longest run</span><b>${P.streak}</b><small>work days in a row</small></div>
+    ${BANDS.map((x) => `<div><span><i class="dot" style="--c:${x.color}"></i>${x.name}</span><b>${bt(x.id)}</b><small>${pct0(bt(x.id) / W)} of work days</small></div>`).join("")}
+    <div><span><i class="dot" style="--c:${EXTRA_C}"></i>Extra shifts</span><b>${P.extra}</b><small>${P.extra ? hrs(P.extraMin) + " on top of her shifts" : "None"}</small></div>
+    <div><span>Records</span><b>${P.recs.length}</b><small>${P.incidents} incident${P.incidents === 1 ? "" : "s"} · ${P.work ? nf2.format((P.incidents / P.work) * 30) : "0"} per 30 days</small></div></div>`;
+  // shift mix
+  h += `<div class="pf2c"><div class="panel"><h4>Shift mix</h4>${mixBar(bands.map((x) => ({ v: P.byBand[x.id].days, c: x.color, l: x.name })).concat(P.off ? [{ v: P.off, c: OFF_C, l: "Day off" }] : []), 1)}
+    <table class="stbl pft"><thead><tr><th>Shift</th><th>Days</th><th>Share of all days</th><th>Share of work days</th><th>Hours</th></tr></thead><tbody>
+    ${bands.map((x) => { const v = P.byBand[x.id]; return `<tr><td><span class="dot" style="--c:${x.color}"></span>${x.name} <span class="muted" style="font-size:11px">${x.hint}</span></td><td><b>${v.days}</b></td><td>${pct0(v.days / P.sched)}</td><td>${pct0(v.days / W)}</td><td>${hrs(v.min)}</td></tr>`; }).join("")}
+    ${P.off ? `<tr><td><span class="dot" style="--c:${OFF_C}"></span>Day off</td><td><b>${P.off}</b></td><td>${pct0(P.off / P.sched)}</td><td>—</td><td>—</td></tr>` : ""}
+    ${P.extra ? `<tr><td><span class="dot" style="--c:${EXTRA_C}"></span>Extra shifts <span class="muted" style="font-size:11px">on top of the day</span></td><td><b>${P.extra}</b></td><td>—</td><td>${pct0(P.extra / W)}</td><td>${hrs(P.extraMin)}</td></tr>` : ""}
+    ${P.doubles ? `<tr><td class="muted">Split / double days</td><td>${P.doubles}</td><td>—</td><td>${pct0(P.doubles / W)}</td><td></td></tr>` : ""}</tbody></table></div>`;
+  // exact slots
+  h += `<div class="panel"><h4>Shift slots</h4>${mixBar(slots.map(([k, v]) => ({ v: v.days, c: sc[k], l: k })), 1)}
+    <table class="stbl pft"><thead><tr><th>Slot</th><th>Length</th><th>Days</th><th>Share</th><th>Hours</th></tr></thead><tbody>${slots.map(([k, v]) => `<tr><td><span class="dot" style="--c:${sc[k]}"></span>${esc(k)}</td><td>${v.h}h</td><td><b>${v.days}</b></td><td>${pct0(v.days / W)}</td><td>${hrs(v.min)}</td></tr>`).join("") || `<tr><td colspan="5" class="muted">Only extra shifts in this period.</td></tr>`}</tbody></table>
+    <div class="pfln">${Object.entries(P.byLen).sort((x, y) => +y[0] - +x[0]).map(([k, v]) => `<span><b>${k}h</b> shifts · ${v.n}</span>`).join("")}${P.brk ? `<span>Break allowance · <b>${hrs(P.brk)}</b></span>` : ""}</div></div></div>`;
+  // weekday pattern
+  const order = PF_IDX(D), rows = bands.map((x) => ({ id: x.id, name: x.name, c: x.color })).concat(P.off ? [{ id: "off", name: "Day off", c: OFF_C }] : []);
+  const maxC = Math.max(1, ...order.flatMap((k) => rows.map((x) => P.wd[k][x.id] || 0)));
+  const offBy = order.map((k) => P.wd[k].off || 0), offMax = Math.max(...offBy);
+  h += `<div class="panel"><h4>Weekly pattern${offMax > 0 ? ` · usually off on <b style="color:var(--plum)">${order.filter((k, j) => offBy[j] === offMax).map((k) => DAYS[k]).join(" / ")}</b>` : ""}</h4><table class="pfw"><thead><tr><th></th>${order.map((k) => `<th>${DY[k]}</th>`).join("")}</tr></thead><tbody>
+    ${rows.map((x) => `<tr><td><span class="dot" style="--c:${x.c}"></span>${x.name}</td>${order.map((k) => { const v = P.wd[k][x.id] || 0; return `<td><span class="c" style="background:${v ? `color-mix(in srgb,${x.c} ${Math.round(18 + (v / maxC) * 72)}%,#fff)` : "transparent"};color:${v / maxC > 0.55 && x.id !== "off" ? "#fff" : "var(--ink-2)"}">${v || "·"}</span></td>`; }).join("")}</tr>`).join("")}</tbody></table></div>`;
+  // month by month
+  const mk = Object.keys(P.months).sort();
+  if (mk.length > 1) h += `<div class="panel"><h4>Month by month</h4><div class="tw"><table class="stbl pft"><thead><tr><th>Month</th><th>Days</th><th>Work</th><th>Off</th>${BANDS.map((x) => `<th>${x.name}</th>`).join("")}<th>Extra</th><th>Hours</th><th>Main slot</th></tr></thead><tbody>${mk.slice().reverse().map((k) => { const M = P.months[k], top = Object.entries(M.bySlot).sort((x, y) => y[1] - x[1])[0]; return `<tr><td>${MONF[+k.slice(5) - 1]} ${k.slice(0, 4)}</td><td>${M.sched}</td><td><b>${M.work}</b></td><td>${M.off}</td>${BANDS.map((x) => `<td>${M.byBand[x.id] || "·"}</td>`).join("")}<td>${M.extra || "·"}</td><td>${hrs(M.min)}</td><td>${top ? `${esc(top[0])} <span class="muted">${pct0(top[1] / (M.work || 1))}</span>` : "—"}</td></tr>`; }).join("")}</tbody></table></div></div>`;
+  // conduct & records
+  const net = P.bonus.amount - P.ded.amount;
+  h += `<div class="panel"><h4>Conduct &amp; records</h4><div class="pfr">
+    <div><span>Excuses</span><b>${P.rc.excuse}</b></div><div><span>Late arrivals</span><b>${P.rc.late}</b></div><div><span>Early leave</span><b>${P.rc.early}</b></div><div><span>Day-off changes</span><b>${P.rc.dayoff}</b></div><div><span>Shift swaps</span><b>${P.rc.swap}</b></div>
+    <div class="g"><span>Bonuses</span><b class="pos">${P.bonus.n ? "+ " + money(P.bonus.amount) : "—"}</b><small>${P.bonus.n} record${P.bonus.n === 1 ? "" : "s"}</small></div>
+    <div class="r"><span>Deductions</span><b class="neg">${P.ded.n ? "− " + esc(dedText(P.ded)) : "—"}</b><small>${P.ded.n} record${P.ded.n === 1 ? "" : "s"}</small></div>
+    <div><span>Net</span><b class="${net < 0 ? "neg" : net > 0 ? "pos" : ""}">${net < 0 ? "− " : net > 0 ? "+ " : ""}${money(Math.abs(net))}</b><small>${P.ded.days ? `and − ${dayStr(P.ded.days)}` : P.rc.pending ? `${P.rc.pending} pending` : "&nbsp;"}</small></div></div>
+    ${P.recs.length ? `<table class="stbl pft pfrl"><thead><tr><th>Date</th><th>Type</th><th>Details</th><th>Amount</th><th>Status</th></tr></thead><tbody>${P.recs.slice(img ? -14 : 0).reverse().map((r) => { const d = dIdx(r.date); return `<tr><td>${DY[wdOf(d)]} ${dmy(d, 1)}</td><td><span class="tp ${r.type}">${esc(REQ_TYPES[r.type] || r.type)}</span>${r.ref ? ` <span class="ref">${esc(r.ref)}</span>` : ""}</td><td style="white-space:normal">${r.type === "swap" ? esc(reqBadge(D, r, m.id, true)) + " · " : ""}${esc(isAdj(r) ? (r.reason || "") + (r.details ? " — " + r.details : "") : r.details || "")}${!img && (r.attachments || []).length ? ` <button class="ref" data-act="viewAtt" data-r="${esc(r.id)}" data-j="0" style="border:none;background:none;cursor:pointer">📎 ${r.attachments.length}</button>` : ""}</td><td>${isAdj(r) ? `<b class="${r.type === "bonus" ? "pos" : "neg"}">${ADJ[r.type].sign} ${esc(dedText(r))}</b>` : "—"}</td><td><span class="ss ${stClass(r)}">${stLabel(r)}</span></td></tr>`; }).join("")}</tbody></table>` : `<div class="muted" style="font-size:12.8px;margin-top:10px">No excuses, swaps, bonuses or deductions in this period — a clean record.</div>`}</div>`;
+  // daily reports + tasks (signed-in data, when loaded)
+  if (S.me) {
+    const rp = RS.raw ? repModel().find((x) => x.m && x.m.id === m.id) : null, cp = rp ? compliance(D, rp, a, b, cairoNow().idx, "") : null, ag = rp && rp.kind === "metrics" ? agg(rp.rows, a, b, "") : null;
+    const L = TK.list ? TK.list.filter((x) => x.member === m.id && tDay(x) >= a && tDay(x) <= b) : null, k = L ? tkStats(L, cairoNow().abs) : null, [g, gc] = grade(k ? k.score : null);
+    const repP = rp ? `<table class="stbl"><tbody>
+        <tr><td>Reports submitted</td><td><b>${cp.expected ? pct0(cp.done / cp.expected) : "—"}</b> <span class="muted">${cp.done}/${cp.expected} due${cp.missing.length ? ` · <b style="color:var(--bad)">${cp.missing.length} missing</b>` : ""}</span></td></tr>
+        <tr><td>Written on time</td><td><b>${cp.rate == null ? "—" : pct0(cp.rate)}</b> <span class="muted">${cp.timed ? `${cp.onTime}/${cp.timed}${cp.late.length ? ` · ${cp.late.length} late` : ""}` : "times recorded from 26 Nov"}</span></td></tr>
+        <tr><td>Typical time after shift</td><td><b>${cp.median == null ? "—" : fmtDelay(cp.median)}</b></td></tr>
+        ${ag ? `<tr><td>Sales</td><td><b>EGP ${fN(ag.sales)}</b> <span class="muted">${fN(ag.orders)} orders · AOV ${fN(ag.aov)}</span></td></tr>` : ""}</tbody></table>${img ? "" : `<button class="btn sm ghost" style="margin-top:8px" data-act="pfRep" data-k="${esc(rp.key)}">Full report profile →</button>`}`
+      : `<div class="muted" style="font-size:12.8px">${RS.raw ? "No report sheet linked to her." : RS.loading ? "Loading report data…" : img ? "Report data not loaded." : `<button class="btn sm" data-act="pfLoadRep">Load report data</button>`}</div>`;
+    const tkP = k && k.n ? `<table class="stbl"><tbody><tr><td>Task score</td><td><b class="sc ${gc}" style="font-size:22px">${k.score ?? "—"}</b> <span class="muted">${g}</span></td></tr><tr><td>Tasks</td><td><b>${k.n}</b> <span class="muted">· ${k.closed} completed · ${k.open} open${k.overdue ? ` · <b style="color:var(--bad)">${k.overdue} overdue</b>` : ""}</span></td></tr><tr><td>On time · quality</td><td><b>${pct0(k.onTime)}</b> · ${k.quality == null ? "—" : stars(k.quality)}</td></tr><tr><td>Right first time</td><td><b>${pct0(k.ftr)}</b> <span class="muted">${k.returns ? `${k.returns} rework request${k.returns === 1 ? "" : "s"}` : "no rework"}</span></td></tr></tbody></table>`
+      : `<div class="muted" style="font-size:12.8px">${TK.list ? "No tasks due in this period." : TK.loading ? "Loading tasks…" : img ? "Tasks not loaded." : `<button class="btn sm" data-act="pfLoadTk">Load tasks</button>`}</div>`;
+    h += `<div class="pf2c"><div class="panel"><h4>Daily reports</h4>${repP}</div><div class="panel"><h4>Tasks</h4>${tkP}</div></div>`;
+  }
+  return h;
+}
+function profileSel() { return `<select id="pfPeriod">${PFPER.map(([k, l]) => `<option value="${k}" ${PF.period === k ? "selected" : ""}>${l}</option>`).join("")}</select>`; }
+function renderProfiles() {
+  const D = V(), [a, b, t] = pfRange(), el = $("#profiles"); if (!el) return;
+  $("#pfSub").innerHTML = `${PF.period === "all" ? "All time" : rngTxt(a, b)} · counted up to today. Click a name for her full profile.`;
+  if (!$("#pfCtl").contains(document.activeElement)) $("#pfCtl").innerHTML = `${profileSel()}${PF.period === "custom" ? `<input type="date" id="pfFrom" value="${iDate(a)}"><input type="date" id="pfTo" value="${iDate(b)}">` : ""}`;
+  el.innerHTML = D.members.map((m) => {
+    const P = memberProfile(D, m, a, b, t), bands = BANDS.filter((x) => P.byBand[x.id]);
+    const slots = Object.entries(P.bySlot).sort((x, y) => y[1].days - x[1].days), sc = slotColors(P), W = P.work || 1;
+    return `<button class="pft2" data-act="pfOpen" data-id="${esc(m.id)}"><div class="h"><div class="av" style="--c:${esc(m.color)}">${esc(initials(m.name))}</div><div style="min-width:0"><b>${esc(m.name)}</b><small>${P.sched ? `${P.work} work · ${P.off} off · ${hrs(P.min)}` : "Not scheduled"}</small></div>${P.recs.length ? `<span class="rb" title="Records in this period">${P.recs.length}</span>` : ""}</div>
+      ${mixBar(bands.map((x) => ({ v: P.byBand[x.id].days, c: x.color, l: x.name })).concat(P.off ? [{ v: P.off, c: OFF_C, l: "Day off" }] : []))}
+      <div class="ln">${bands.map((x) => `<span><i style="background:${x.color}"></i>${x.name} <b>${pct0(P.byBand[x.id].days / W)}</b></span>`).join("")}${P.off ? `<span><i style="background:${OFF_C}"></i>Off <b>${pct0(P.off / P.sched)}</b></span>` : ""}${P.extra ? `<span><i style="background:${EXTRA_C}"></i>Extra <b>${P.extra}</b></span>` : ""}</div>
+      ${mixBar(slots.map(([k, v]) => ({ v: v.days, c: sc[k], l: k })))}
+      <div class="ln">${slots.slice(0, 3).map(([k, v]) => `<span><i style="background:${sc[k]}"></i>${esc(k)} <b>${pct0(v.days / W)}</b></span>`).join("") || `<span class="muted">No shifts</span>`}</div></button>`;
+  }).join("") || `<div class="empty" style="grid-column:1/-1">No team members.</div>`;
+}
+function openProfile(id) {
+  const D = V(), m = memById(D, id); if (!m) return;
+  PF.sel = id;
+  const [a, b, t] = pfRange();
+  const sc = $(".overlay .pfm .m-body")?.scrollTop;
+  $("#modalRoot").innerHTML = `<div class="overlay" data-act="pfClose"><div class="modal pfm"><div class="m-head"><h3>Team Member Profile</h3><div class="row">${profileSel()}${PF.period === "custom" ? `<input type="date" id="pfFrom" value="${iDate(a)}"><input type="date" id="pfTo" value="${iDate(b)}">` : ""}
+    <button class="btn sm light" data-act="pfImg">⤓ Download image</button>${canShareFiles() ? `<button class="btn sm light" data-act="pfShare">Share</button>` : ""}<button class="btn ghost" data-act="pfClose">✕</button></div></div>
+    <div class="m-body dtl">${profileBody(D, m, a, b, t)}</div></div></div>`;
+  if (sc) $(".overlay .pfm .m-body").scrollTop = sc;
+  // pull in report and task data for the bottom panels
+  if (S.me) {
+    const again = () => { if (PF.sel === id && $("#modalRoot .pfm")) openProfile(id); };
+    if (!TK.list && !TK.loading && !TK.error) loadTasks(true).then(again);
+    if (!RS.raw && !RS.loading && !RS.error) loadReports().then(again);
+  }
+}
+// image header used by the profile and records images
+const xHead = (title, sub) => `<div class="xh"><img src="assets/logo-white.png" alt=""><div class="r"><div class="ey">Fémini · Team Operations</div>${title}<small>${sub}</small></div></div>`;
+const xFoot = () => `<div class="xf"><span>Fémini · Team Operations Management</span><span>Issued ${dmy(cairoNow().idx, 1)} · Cairo time</span></div>`;
+function profileImageHTML(D, m) {
+  const [a, b, t] = pfRange();
+  return `<div class="xw pfi" style="width:1400px">${xHead("Team Member Profile", PF.period === "all" ? "All time" : rngTxt(a, b))}
+    <div class="pfi-b dtl">${profileBody(D, m, a, b, t, true)}</div>${xFoot()}</div>`;
+}
+/* records (excuses, swaps, bonuses, deductions) as an image — week or month */
+function recordsImageHTML(D, a, b, label) {
+  const L = (D.requests || []).filter((r) => { const i = dIdx(r.date), j = r.withDate ? dIdx(r.withDate) : -1; return (i >= a && i <= b) || (j >= a && j <= b); }).sort((x, y) => x.date.localeCompare(y.date));
+  const ids = [...new Set(L.flatMap((r) => (r.type === "swap" ? [r.member, r.withMember] : [r.member])))];
+  const z = () => ({ excuse: 0, late: 0, early: 0, dayoff: 0, swap: 0, bonus: 0, ded: 0, dd: 0, n: 0 });
+  const per = Object.fromEntries(ids.map((id) => [id, z()]));
+  for (const r of L) { if (r.status === "rejected") continue; const p = per[r.member]; p.n++; if (r.type === "bonus") p.bonus += +r.amount || 0; else if (r.type === "deduction") { p.ded += +r.amount || 0; p.dd += +r.days || 0; } else if (p[r.type] != null) p[r.type]++; if (r.type === "swap" && per[r.withMember]) per[r.withMember].swap++; }
+  const T = ids.reduce((s, id) => { for (const k in s) s[k] += per[id][k]; return s; }, z());
+  const netTxt = (p) => { const v = p.bonus - p.ded; return `<b class="${v < 0 ? "neg" : v > 0 ? "pos" : ""}">${v < 0 ? "− " : v > 0 ? "+ " : ""}${esc(money(Math.abs(v)))}</b>${p.dd ? ` <span class="ref">− ${dayStr(p.dd)}</span>` : ""}`; };
+  const sum = ids.length ? `<div class="xr"><h3>Summary by team member</h3><table><thead><tr><th>Team member</th><th>Excuses</th><th>Late</th><th>Early leave</th><th>Day-off changes</th><th>Swaps</th><th>Bonuses</th><th>Deductions</th><th>Net</th></tr></thead><tbody>
+    ${ids.map((id) => { const p = per[id]; return `<tr><td><b>${esc(memName(D, id))}</b></td><td>${p.excuse || "–"}</td><td>${p.late || "–"}</td><td>${p.early || "–"}</td><td>${p.dayoff || "–"}</td><td>${p.swap || "–"}</td><td>${p.bonus ? `<b class="pos">+ ${esc(money(p.bonus))}</b>` : "–"}</td><td>${p.ded || p.dd ? `<b class="neg">− ${esc(dedText({ amount: p.ded, days: p.dd }))}</b>` : "–"}</td><td>${netTxt(p)}</td></tr>`; }).join("")}
+    <tr class="tot"><td><b>Total</b></td><td><b>${T.excuse || "–"}</b></td><td><b>${T.late || "–"}</b></td><td><b>${T.early || "–"}</b></td><td><b>${T.dayoff || "–"}</b></td><td><b>${L.filter((r) => r.type === "swap" && r.status !== "rejected").length || "–"}</b></td><td><b class="pos">${T.bonus ? "+ " + esc(money(T.bonus)) : "–"}</b></td><td><b class="neg">${T.ded || T.dd ? "− " + esc(dedText({ amount: T.ded, days: T.dd })) : "–"}</b></td><td>${netTxt(T)}</td></tr></tbody></table></div>` : "";
+  const list = `<div class="xr"><h3>All records · ${L.length}</h3>${L.length ? `<table><thead><tr><th>Date</th><th>Type</th><th>Team member</th><th>Details</th><th>Amount</th><th>Status</th></tr></thead><tbody>${L.map((r) => { const d = dIdx(r.date); return `<tr><td style="white-space:nowrap">${DY[wdOf(d)]} ${dmy(d)}</td><td><span class="tp ${r.type}">${REQ_TYPES[r.type] || r.type}</span>${r.ref ? ` <span class="ref">${esc(r.ref)}</span>` : ""}</td><td><b>${esc(r.type === "swap" ? memName(D, r.member) + " ↔ " + memName(D, r.withMember) : memName(D, r.member))}</b></td><td dir="auto">${esc(isAdj(r) ? (r.reason || "") + (r.details ? " — " + r.details : "") : r.details || "")}</td><td style="white-space:nowrap">${isAdj(r) ? `<b class="${r.type === "bonus" ? "pos" : "neg"}">${ADJ[r.type].sign} ${esc(dedText(r))}</b>` : "—"}</td><td><span class="ss ${stClass(r)}">${stLabel(r)}</span></td></tr>`; }).join("")}</tbody></table>` : `<p style="font-size:18px;color:var(--muted);margin:0">No excuses, shift changes, bonuses or deductions in this period.</p>`}</div>`;
+  return `<div class="xw" style="width:1500px">${xHead("Excuses, Shifts, Bonuses &amp; Deductions", label)}${sum}${list}${xFoot()}</div>`;
+}
+/* one record as a formal notice — to send to the team member */
+function recordImageHTML(D, r) {
+  const d = dIdx(r.date), adj = isAdj(r), swap = r.type === "swap";
+  const title = adj ? (r.type === "bonus" ? "Bonus Notice" : "Deduction Notice") : swap ? "Shift Swap" : REQ_TYPES[r.type] || "Record";
+  const who = (id) => { const m = memById(D, id) || { name: memName(D, id), color: "#8E7BC6" }; return `<div class="xn-p"><i class="av" style="--c:${esc(m.color)}">${esc(initials(m.name))}</i><div><b>${esc(m.name)}</b>${m.role ? `<small>${esc(m.role)}</small>` : ""}</div></div>`; };
+  const day = (i) => `${DAYS[wdOf(i)]}, ${dmy(i, 1)}`;
+  const rows = [["Date", swap && r.withDate && r.withDate !== r.date ? `${day(d)} ↔ ${day(dIdx(r.withDate))}` : day(d)], ["Type", esc(REQ_TYPES[r.type] || r.type)]];
+  if (adj) rows.push(["Reason", esc(r.reason || "—")]);
+  if (r.details) rows.push([adj ? "Details" : "Notes", `<span dir="auto">${esc(r.details)}</span>`]);
+  if ((r.attachments || []).length) rows.push(["Attachments", `${r.attachments.length} file${r.attachments.length === 1 ? "" : "s"} on record`]);
+  rows.push(["Status", `<span class="ss ${stClass(r)}">${stLabel(r)}</span>`]);
+  return `<div class="xw xn" style="width:1080px">${xHead(esc(title), r.ref ? esc(r.ref) : day(d))}
+    <div class="xr">
+      <div class="xn-top">${swap ? `${who(r.member)}<span class="xn-sw">↔</span>${who(r.withMember)}` : who(r.member)}${adj ? `<div class="xn-amt ${r.type}"><span>${r.type === "bonus" ? "Bonus" : "Deduction"}</span><b>${ADJ[r.type].sign} ${esc(dedText(r))}</b></div>` : ""}</div>
+      <table class="xn-t"><tbody>${rows.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("")}</tbody></table>
+      ${r.createdBy ? `<div class="xn-by">Logged by ${esc(r.createdBy)}</div>` : ""}
+    </div>${xFoot()}</div>`;
+}
+async function pfAction(act, el, ev) {
+  const D = V();
+  switch (act) {
+    case "pfOpen": return openProfile(el.dataset.id);
+    case "pfClose": if (el.tagName === "BUTTON" || ev.target === el) { PF.sel = null; $("#modalRoot").innerHTML = ""; } return;
+    case "pfImg": case "pfShare": { const m = memById(D, PF.sel); if (!m) return; toast("Preparing image…"); const [a, b] = pfRange(); return exportImage(profileImageHTML(D, m), `Femini-Profile-${slug(m.name)}-${PF.period === "all" ? "All-time" : iDate(a) + "_" + iDate(b)}.png`, act === "pfShare"); }
+    case "pfRep": $("#modalRoot").innerHTML = ""; showView("reports"); return repDetail(el.dataset.k, "history");
+    case "pfLoadRep": await loadReports(); return openProfile(PF.sel);
+    case "pfLoadTk": await loadTasks(true); return openProfile(PF.sel);
+    case "recImg": {
+      const ws = viewWS(); let a, b, label;
+      if (el.dataset.v === "month") [a, b, label] = monthRange(ws + 3); else { a = ws; b = ws + 6; label = `Week of ${dmy(ws)} – ${dmy(ws + 6, 1)}`; }
+      toast("Preparing image…");
+      return exportImage(recordsImageHTML(D, a, b, label), `Femini-Records-${el.dataset.v === "month" ? label.replace(" ", "-") : iDate(ws)}.png`);
+    }
+    case "recOne": case "recOneShare": {
+      const r = (D.requests || []).find((x) => x.id === el.dataset.r); if (!r) return;
+      toast("Preparing image…");
+      return exportImage(recordImageHTML(D, r), `Femini-${(r.ref || REQ_TYPES[r.type] || "Record").replace(/[^\w-]+/g, "-")}-${slug(memName(D, r.member))}-${r.date}.png`, act === "recOneShare");
+    }
+  }
+}
+
+/* ============================ tasks (assign → send as image → proof → review & rating) ============================ */
+const TK = { list: null, loading: false, error: "", period: "thisMonth", mem: "", tab: "open", q: "", form: null, sel: null, rate: 0, busy: false };
+const TST = { assigned: ["Assigned", "as"], progress: ["In progress", "pr"], done: ["Awaiting review", "rv"], approved: ["Approved", "ap"], returned: ["Returned for rework", "rt"], cancelled: ["Cancelled", "cx"] };
+const TPRI = { urgent: "Urgent", high: "High", normal: "Normal", low: "Low" };
+const TPER = [["thisWeek", "This week"], ["lastWeek", "Last week"], ["thisMonth", "This month"], ["lastMonth", "Last month"], ["last30", "Last 30 days"], ["last90", "Last 90 days"], ["thisYear", "This year"], ["all", "All time"]];
+const OPEN = new Set(["assigned", "progress", "returned"]);
+function cairoAt(d) {
+  const p = Object.fromEntries(cairoFmt.formatToParts(new Date(d)).map((x) => [x.type, x.value]));
+  const idx = dIdx(`${p.year}-${p.month}-${p.day}`);
+  return idx * 1440 + (+p.hour % 24) * 60 + +p.minute;
+}
+const tDueAbs = (t) => (t.due ? dIdx(t.due) * 1440 + (t.dueTime ? hm(t.dueTime) : 23 * 60 + 59) : null);
+const tDueTxt = (t, yr) => (t.due ? `${DY[wdOf(dIdx(t.due))]} ${dmy(dIdx(t.due), yr)}${t.dueTime ? " · " + fmtT(hm(t.dueTime)) : ""}` : "No deadline");
+const tMem = (t) => memById(V(), t.member);
+const tName = (t) => (tMem(t) || {}).name || t.memberName || "—";
+const tColor = (t) => (tMem(t) || {}).color || "#8C7A5B";
+const tOverdue = (t, now) => OPEN.has(t.status) && t.due && tDueAbs(t) < now;
+const tOnTime = (t) => (t.doneAt && t.due ? cairoAt(t.doneAt) <= tDueAbs(t) : null);
+const stars = (n, big) => `<span class="stars ${big ? "big" : ""}">${[1, 2, 3, 4, 5].map((k) => `<i class="${k <= Math.round(n || 0) ? "on" : ""}">★</i>`).join("")}</span>`;
+const durTxt = (min) => (min == null ? "—" : min < 60 ? `${Math.max(1, Math.round(min))} min` : min < 2880 ? `${(min / 60).toFixed(min < 600 ? 1 : 0)} h` : `${(min / 1440).toFixed(1)} days`);
+function relDue(t, now) {
+  if (!t.due) return `<span class="muted">No deadline</span>`;
+  const d = tDueAbs(t) - now;
+  if (!OPEN.has(t.status)) return `<span class="muted">${tDueTxt(t)}</span>`;
+  if (d < 0) return `<b class="due bad">Overdue ${durTxt(-d)}</b><small>${tDueTxt(t)}</small>`;
+  if (d < 1440) return `<b class="due warn">Due in ${durTxt(d)}</b><small>${tDueTxt(t)}</small>`;
+  return `<b class="due">${tDueTxt(t)}</b><small>in ${durTxt(d)}</small>`;
+}
+function tkRange() {
+  const D = V(), t = cairoNow().idx, d = new Date(t * 864e5), y = d.getUTCFullYear(), mo = d.getUTCMonth();
+  switch (TK.period) {
+    case "thisWeek": return [wkStart(D, t), wkStart(D, t) + 6];
+    case "lastWeek": return [wkStart(D, t) - 7, wkStart(D, t) - 1];
+    case "lastMonth": return [U0(y, mo - 1, 1), U0(y, mo, 0)];
+    case "last30": return [t - 29, t];
+    case "last90": return [t - 89, t];
+    case "thisYear": return [U0(y, 0, 1), U0(y, 11, 31)];
+    case "all": return [-1e9, 1e9];
+    default: return [U0(y, mo, 1), U0(y, mo + 1, 0)];
+  }
+}
+// a task belongs to the period of its deadline (or the day it was given, if it has none)
+const tDay = (t) => (t.due ? dIdx(t.due) : Math.floor(cairoAt(t.createdAt) / 1440));
+// Task score (0–100): on-time delivery 35% · quality rating 35% · completion 15% · right first time 15%.
+// Parts with nothing to measure yet are left out and the rest re-weighted.
+function tkStats(list, now) {
+  const L = list.filter((t) => t.status !== "cancelled");
+  const closed = L.filter((t) => t.status === "done" || t.status === "approved");
+  const dueOrClosed = L.filter((t) => !OPEN.has(t.status) || (t.due && tDueAbs(t) < now));
+  const timed = closed.filter((t) => t.due && t.doneAt), onTime = timed.filter((t) => tOnTime(t));
+  const rated = L.filter((t) => t.status === "approved" && t.rating);
+  const ftr = rated.filter((t) => !(+t.returns));
+  const tat = closed.filter((t) => t.doneAt).map((t) => cairoAt(t.doneAt) - cairoAt(t.createdAt)).filter((x) => x >= 0);
+  const s = {
+    n: L.length, open: L.filter((t) => OPEN.has(t.status)).length, overdue: L.filter((t) => tOverdue(t, now)).length, review: L.filter((t) => t.status === "done").length,
+    closed: closed.length, approved: rated.length, returns: L.reduce((x, t) => x + (+t.returns || 0), 0),
+    completion: dueOrClosed.length ? closed.length / dueOrClosed.length : null,
+    onTime: timed.length ? onTime.length / timed.length : null, late: timed.length - onTime.length,
+    quality: rated.length ? rated.reduce((x, t) => x + t.rating, 0) / rated.length : null,
+    ftr: rated.length ? ftr.length / rated.length : null,
+    tat: tat.length ? tat.sort((a, b) => a - b)[Math.floor(tat.length / 2)] : null,
+  };
+  const parts = [[s.onTime, 0.35], [s.quality == null ? null : (s.quality - 1) / 4, 0.35], [s.completion, 0.15], [s.ftr, 0.15]].filter((x) => x[0] != null);
+  const w = parts.reduce((x, p) => x + p[1], 0);
+  s.score = w ? Math.round((parts.reduce((x, p) => x + p[0] * p[1], 0) / w) * 100) : null;
+  return s;
+}
+const grade = (sc) => (sc == null ? ["", ""] : sc >= 90 ? ["Excellent", "ok"] : sc >= 80 ? ["Very good", "ok"] : sc >= 70 ? ["Good", "warn"] : sc >= 60 ? ["Needs improvement", "warn"] : ["Below standard", "bad"]);
+async function loadTasks(quiet) {
+  if (!S.me) return;
+  if (!quiet) { TK.loading = true; renderTasks(); }
+  try { const j = await call("/api/tasks", "GET"); TK.list = j.tasks || []; TK.error = ""; }
+  catch (e) { if (e.status === 401) { TK.loading = false; return signedOut("Please sign in again."); } TK.error = e.message; }
+  TK.loading = false; renderTasks();
+  if (TK.sel && $("#modalRoot .tkm")) openTask(TK.sel);
+}
+async function tkOp(body, okMsg) {
+  if (TK.busy) return null;
+  TK.busy = true;
+  try { const j = await call("/api/tasks", "POST", body); TK.list = j.tasks; if (okMsg) toast(okMsg); renderTasks(); load(true); return j.task || true; }
+  catch (e) { if (e.status === 401) signedOut("Please sign in again."); else toast(e.message, true); return null; }
+  finally { TK.busy = false; }
+}
+function renderTasks() {
+  if (RS.view !== "tasks") return;
+  const D = V(), root = $("#tkView");
+  if (!S.me) { root.innerHTML = `<section class="card"><div class="rsetup"><h3>Sign in to manage tasks</h3><p class="muted">Tasks are for managers — assign work, send it to the team as an image, and close it with proof and a rating.</p><button class="btn primary" data-act="tkLogin">Sign in</button></div></section>`; return; }
+  if (!TK.list) { root.innerHTML = `<section class="card"><div class="empty">${TK.error ? esc(TK.error) : "Loading tasks…"}</div></section>`; if (!TK.loading && !TK.error) loadTasks(); return; }
+  const now = cairoNow().abs, [a, b] = tkRange();
+  const all = TK.list.filter((t) => !TK.mem || t.member === TK.mem);
+  const inP = all.filter((t) => { const i = tDay(t); return i >= a && i <= b; });
+  const S0 = tkStats(inP, now), live = tkStats(all, now);
+  const dueToday = all.filter((t) => OPEN.has(t.status) && t.due && dIdx(t.due) === cairoNow().idx).length;
+  const [gl, gc] = grade(S0.score);
+  const mems = D.members.filter((m) => !m.former || TK.list.some((t) => t.member === m.id));
+  let h = `<section class="card rfilter"><div class="rctl">
+    <button class="btn primary" data-act="tkNew"><b style="font-size:16px;line-height:0">+</b>&nbsp;New task</button>
+    <label class="field">Performance period<select id="tkPeriod">${TPER.map(([k, l]) => `<option value="${k}" ${TK.period === k ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+    <label class="field">Team member<select id="tkMem"><option value="">Everyone</option>${mems.map((m) => `<option value="${esc(m.id)}" ${TK.mem === m.id ? "selected" : ""}>${esc(m.name)}</option>`).join("")}</select></label>
+    <label class="field" style="flex:1;min-width:200px;max-width:340px">Search<input type="text" id="tkQ" placeholder="Code, title or details…" value="${esc(TK.q)}"></label>
+    <div class="rbtns"><button class="btn sm" data-act="tkRefresh">${TK.loading ? "Refreshing…" : "↻ Refresh"}</button></div></div>
+    <div class="rmeta">Performance covers tasks due ${TK.period === "all" ? "at any time" : rngTxt(a, b)}${TK.mem ? ` · <b>${esc((memById(D, TK.mem) || {}).name || "")}</b> only` : ""} · ${TK.list.length} task${TK.list.length === 1 ? "" : "s"} on record</div></section>`;
+  if (TK.error) h += `<div class="banner warn">${esc(TK.error)}</div>`;
+  h += `<div class="kpis">
+    <div class="kpi"><div class="l">Open tasks</div><div class="v">${live.open}</div><div class="s">${dueToday ? `${dueToday} due today` : "Nothing due today"}</div></div>
+    <div class="kpi"><div class="l">Overdue now</div><div class="v ${live.overdue ? "bad" : "ok"}">${live.overdue}</div><div class="s">Open past their deadline</div></div>
+    <div class="kpi"><div class="l">Awaiting your review</div><div class="v ${live.review ? "warn" : ""}">${live.review}</div><div class="s">Done — rate &amp; approve</div></div>
+    <div class="kpi"><div class="l">Completed · period</div><div class="v">${S0.closed}<small>/ ${S0.n}</small></div><div class="s">${S0.completion == null ? "—" : fPct(S0.completion, 0) + " completion"}</div></div>
+    <div class="kpi"><div class="l">On-time delivery</div><div class="v ${S0.onTime == null ? "" : S0.onTime >= 0.9 ? "ok" : S0.onTime >= 0.75 ? "" : "bad"}">${fPct(S0.onTime, 0)}</div><div class="s">${S0.late ? `${S0.late} late` : "Before the deadline"}</div></div>
+    <div class="kpi"><div class="l">Quality rating</div><div class="v">${S0.quality == null ? "—" : nf2.format(S0.quality)}<small>/ 5</small></div><div class="s">${S0.quality == null ? "No rated tasks yet" : stars(S0.quality)}</div></div>
+    <div class="kpi"><div class="l">Right first time</div><div class="v">${fPct(S0.ftr, 0)}</div><div class="s">${S0.returns ? `${S0.returns} rework request${S0.returns === 1 ? "" : "s"}` : "No rework requests"}</div></div>
+    <div class="kpi"><div class="l">Task score</div><div class="v ${gc}">${S0.score ?? "—"}<small>/ 100</small></div><div class="s">${gl}</div></div></div>`;
+  // performance by member
+  const rows = mems.map((m) => ({ m, s: tkStats(inP.filter((t) => t.member === m.id), now), all: tkStats(TK.list.filter((t) => t.member === m.id), now) })).filter((x) => x.s.n || x.all.open);
+  rows.sort((x, y) => (y.s.score ?? -1) - (x.s.score ?? -1) || y.s.n - x.s.n);
+  h += `<section class="card"><div class="sh"><div><div class="eyebrow">Accountability</div><h2>Task Performance</h2><div class="sub">Score = on-time delivery 35% · quality rating 35% · completion 15% · right first time 15%.</div></div></div>
+    <div class="lbw"><table class="lbt tkp"><thead><tr><th>#</th><th>Team member</th><th>Score</th><th>Tasks</th><th>Completed</th><th>On time</th><th>Quality</th><th>Right 1st time</th><th>Typical turnaround</th><th>Open</th><th>Overdue</th></tr></thead><tbody>
+    ${rows.map(({ m, s, all: A2 }, k) => { const [g, c] = grade(s.score); return `<tr class="click" data-act="tkMemSel" data-k="${esc(m.id)}"><td class="rk">${s.score == null ? "–" : k + 1}</td><td><div class="who"><div class="av" style="--c:${esc(m.color)}">${esc(initials(m.name))}</div><div><b>${esc(m.name)}</b><small>${m.code ? "ID " + esc(m.code) : ""}</small></div></div></td>
+      <td><div class="scw"><b class="sc ${c}">${s.score ?? "—"}</b><small class="${c}">${g}</small></div></td><td>${s.n}</td><td>${s.closed}${s.completion == null ? "" : ` <span class="muted">· ${fPct(s.completion, 0)}</span>`}</td>
+      <td>${s.onTime == null ? "—" : `<span class="stale ${s.onTime >= 0.9 ? "ok" : s.onTime >= 0.75 ? "warn" : "bad"}">${fPct(s.onTime, 0)}</span>`}</td><td>${s.quality == null ? "—" : `${stars(s.quality)} <span class="muted">${nf2.format(s.quality)}</span>`}</td>
+      <td>${fPct(s.ftr, 0)}</td><td>${durTxt(s.tat)}</td><td>${A2.open || "0"}</td><td>${A2.overdue ? `<b style="color:var(--bad)">${A2.overdue}</b>` : "0"}</td></tr>`; }).join("") || `<tr><td colspan="11" class="muted" style="text-align:left">No tasks in this period yet — press <b>New task</b> to assign the first one.</td></tr>`}
+    </tbody></table></div></section>`;
+  // board
+  const q = TK.q.trim().toLowerCase();
+  const match = (t) => !q || [t.code, t.title, t.details, tName(t)].join(" ").toLowerCase().includes(q);
+  const groups = { open: (t) => OPEN.has(t.status), overdue: (t) => tOverdue(t, now), review: (t) => t.status === "done", approved: (t) => t.status === "approved", returned: (t) => t.status === "returned", cancelled: (t) => t.status === "cancelled", all: () => true };
+  const base = all.filter(match);
+  const cnt = Object.fromEntries(Object.entries(groups).map(([k, f]) => [k, base.filter(f).length]));
+  const PR = { urgent: 0, high: 1, normal: 2, low: 3 };
+  const list = base.filter(groups[TK.tab] || groups.open).sort((x, y) => TK.tab === "open" || TK.tab === "overdue" ? (tOverdue(y, now) - tOverdue(x, now)) || ((tDueAbs(x) ?? 9e12) - (tDueAbs(y) ?? 9e12)) || PR[x.priority] - PR[y.priority] : (y.updatedAt || y.createdAt).localeCompare(x.updatedAt || x.createdAt));
+  const TABS = [["open", "Open"], ["overdue", "Overdue"], ["review", "Awaiting review"], ["approved", "Approved"], ["returned", "Returned"], ["cancelled", "Cancelled"], ["all", "All"]];
+  h += `<section class="card"><div class="sh"><div><div class="eyebrow">Task board</div><h2>Assignments</h2><div class="sub">Click a task to send its image, record her reply and proof, and rate it.</div></div></div>
+    <div class="chips">${TABS.map(([k, l]) => `<button class="chip ${TK.tab === k ? "active" : ""} ${k === "overdue" && cnt[k] ? "warnc" : ""}" data-act="tkTab" data-k="${k}">${l}<small>${cnt[k]}</small></button>`).join("")}</div>
+    <div class="tkl">${list.map((t) => { const [sl, sc] = TST[t.status]; const ck = (t.checklist || []).length, cd = (t.checklist || []).filter((c) => c.d).length; return `<div class="tkr ${tOverdue(t, now) ? "od" : ""}" data-act="tkOpen" data-k="${esc(t.id)}">
+      <div class="tc"><span class="code">${esc(t.code)}</span><span class="pri ${t.priority}">${TPRI[t.priority] || ""}</span></div>
+      <div class="tt"><b dir="auto">${esc(t.title)}</b><small>${ck ? `${cd}/${ck} deliverables · ` : ""}${(t.files || []).length ? `📎 ${t.files.length} · ` : ""}Given ${dmy(Math.floor(cairoAt(t.createdAt) / 1440))} by ${esc((t.createdBy || {}).name || "")}</small></div>
+      <div class="who"><div class="av" style="--c:${esc(tColor(t))}">${esc(initials(tName(t)))}</div><b>${esc(tName(t))}</b></div>
+      <div class="td">${relDue(t, now)}</div>
+      <div class="ts"><span class="tks ${sc}">${sl}</span>${t.returns ? `<small>Returned ${t.returns}×</small>` : ""}</div>
+      <div class="tr2">${t.rating ? stars(t.rating) : ""}${(t.proof || []).length ? `<span class="pf">📎 ${t.proof.length}</span>` : ""}</div></div>`; }).join("") || `<div class="empty">${TK.tab === "open" ? "No open tasks — everything is closed." : "Nothing here."}</div>`}</div></section>`;
+  const fq = document.activeElement && document.activeElement.id === "tkQ" ? document.activeElement.selectionStart : null;
+  root.innerHTML = h;
+  if (fq != null) { const el = $("#tkQ"); el.focus(); el.setSelectionRange(fq, fq); }
+}
+/* ---- create / edit ---- */
+function openTaskForm(t) {
+  const now = cairoNow();
+  TK.form = t ? { id: t.id, members: [t.member], title: t.title, details: t.details || "", priority: t.priority, due: t.due, dueTime: t.dueTime, checklist: (t.checklist || []).map((c) => c.t).join("\n"), files: clone(t.files || []) }
+    : TK.form && !TK.form.id ? TK.form : { members: TK.mem ? [TK.mem] : [], title: "", details: "", priority: "normal", due: iDate(now.idx + 1), dueTime: "18:00", checklist: "", files: [] };
+  renderTaskForm(true);
+}
+const attTile = (x, act, j, extra) => `<span class="attx"><button class="att" data-act="${act}" data-j="${j}"${extra || ""} title="${esc(x.name)}">${x.kind === "video" ? `<span class="vid">▶</span><span class="an">${esc(x.name)}</span>` : `<img src="${esc(fileUrl(x))}" alt="" loading="lazy">`}</button>`;
+function renderTaskForm(focus) {
+  const D = V(), f = TK.form, t = f.id ? TK.list.find((x) => x.id === f.id) : null;
+  const mems = D.members.filter((m) => !m.former);
+  $("#modalRoot").innerHTML = `<div class="overlay"><div class="modal tkf"><div class="m-head"><h3>${t ? `Edit ${esc(t.code)}` : "New task"}</h3><button class="btn ghost" data-act="closeModal">✕</button></div>
+    <div class="m-body">
+      <div class="field">Assign to${t ? "" : ` <span style="text-transform:none;letter-spacing:0;font-weight:500">— pick several to give each one her own copy</span>`}</div>
+      <div class="tkmem">${mems.map((m) => `<label class="${f.members.includes(m.id) ? "on" : ""}"><input type="${t ? "radio" : "checkbox"}" name="tkm" value="${esc(m.id)}" ${f.members.includes(m.id) ? "checked" : ""}><span class="av" style="--c:${esc(m.color)}">${esc(initials(m.name))}</span>${esc(m.name)}</label>`).join("")}</div>
+      <label class="field" style="margin-top:14px">Task title<input type="text" id="tkTitle" dir="auto" maxlength="200" value="${esc(f.title)}" placeholder="e.g. الرد على كل رسايل الاستبدال المتأخرة"></label>
+      <label class="field" style="margin-top:12px">Brief / details<textarea id="tkDetails" dir="auto" rows="5" placeholder="What exactly is needed, links, references, standards…">${esc(f.details)}</textarea></label>
+      <div class="tkgrid">
+        <div class="field">Priority<div class="seg" id="tkPri">${Object.entries(TPRI).reverse().map(([k, l]) => `<button type="button" class="${f.priority === k ? "active" : ""}" data-act="tkPri" data-p="${k}">${l}</button>`).join("")}</div></div>
+        <label class="field">Deadline<input type="date" id="tkDue" value="${esc(f.due)}"></label>
+        <label class="field">Time<input type="time" id="tkTime" value="${esc(f.dueTime)}"></label>
+      </div>
+      <label class="field" style="margin-top:12px">Deliverables checklist <span style="text-transform:none;letter-spacing:0;font-weight:500">— one per line (optional)</span><textarea id="tkCheck" dir="auto" rows="3" placeholder="Reply to all pending DMs&#10;Update the out-of-stock list">${esc(f.checklist)}</textarea></label>
+      <div class="field" style="margin-top:12px">Attachments <span style="text-transform:none;letter-spacing:0;font-weight:500">— photos or videos for the brief (references, examples, products…)</span></div>
+      <div class="row" style="margin-top:6px">${(f.files || []).map((x, j) => attTile(x, "tkFFView", j) + `<button class="rm" data-act="tkFFDel" data-j="${j}" title="Remove">✕</button></span>`).join("")}
+        <label class="btn sm">📎 Add photos / videos<input type="file" id="tkFormFiles" accept="image/*,video/*" multiple class="hidden"></label></div>
+      <div id="upStatus" class="upbar hidden" style="margin-top:8px"></div>
+      <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn ghost" data-act="closeModal">Cancel</button><button class="btn primary" data-act="tkSave">${t ? "Save changes" : "Create task &amp; prepare image"}</button></div>
+    </div></div></div>`;
+  if (focus) $("#tkTitle").focus();
+  $("#tkFormFiles").onchange = (e) => { readTaskForm(); uploadFiles([...e.target.files], (att) => { if (!TK.form) return; if ($("#tkTitle")) readTaskForm(); TK.form.files.push(att); if ($("#modalRoot .tkf")) renderTaskForm(); }); };
+}
+function readTaskForm() {
+  const f = TK.form;
+  f.members = [...document.querySelectorAll("input[name=tkm]:checked")].map((x) => x.value);
+  f.title = $("#tkTitle").value.trim(); f.details = $("#tkDetails").value; f.due = $("#tkDue").value; f.dueTime = $("#tkTime").value; f.checklist = $("#tkCheck").value;
+  f.priority = ($("#tkPri .active") || {}).dataset?.p || "normal";
+  return f;
+}
+async function saveTaskForm() {
+  const f = readTaskForm(), D = V();
+  if (!f.members.length) return toast("Choose who the task is for", true);
+  if (!f.title) return toast("Write a title for the task", true);
+  const prev = f.id ? TK.list.find((t) => t.id === f.id) : null;
+  const checklist = f.checklist.split("\n").map((x) => x.trim()).filter(Boolean).map((x) => ({ t: x, d: !!(prev && (prev.checklist || []).find((c) => c.t === x && c.d)) }));
+  const fields = { title: f.title, details: f.details, priority: f.priority, due: f.due, dueTime: f.due ? f.dueTime : "", checklist, files: f.files || [] };
+  if (f.id) {
+    const r = await tkOp({ op: "update", id: f.id, patch: { ...fields, member: f.members[0], memberName: (memById(D, f.members[0]) || {}).name || "" } }, "Task updated");
+    if (r) { TK.form = null; openTask(f.id); }
+    return;
+  }
+  let first = null;
+  for (const mid of f.members) { const r = await tkOp({ op: "create", task: { ...fields, member: mid, memberName: (memById(D, mid) || {}).name || "" } }); if (!r) return; first = first || r; }
+  toast(f.members.length > 1 ? `${f.members.length} tasks created` : `${first.code} created`);
+  TK.form = null; TK.tab = "open";
+  openTask(first.id, true);
+}
+/* ---- the image she receives ---- */
+function taskImageHTML(t) {
+  const D = V(), m = tMem(t), desk = null;
+  const P = { urgent: ["#7A1F2A", "#fff"], high: ["#E6A45C", "#2A1A06"], normal: ["#DDEBE8", "#14494B"], low: ["#ECEAE4", "#5C6B6B"] }[t.priority] || ["#DDEBE8", "#14494B"];
+  return `<div class="tkc">
+    <div class="tkc-h"><img src="assets/logo-white.png" alt=""><div class="r"><small>Task assignment</small>Fémini Team</div></div>
+    <div class="tkc-b">
+      <div class="tkc-top"><span class="code">${esc(t.code)}</span><span class="pri" style="background:${P[0]};color:${P[1]}">${TPRI[t.priority]} priority</span></div>
+      <h1 dir="auto">${esc(t.title)}</h1>
+      <div class="tkc-meta">
+        <div><span>Assigned to</span><b><i class="av" style="--c:${esc(tColor(t))}">${esc(initials(tName(t)))}</i>${esc(tName(t))}</b>${m && m.code ? `<small>ID ${esc(m.code)}</small>` : ""}</div>
+        <div><span>Deadline</span><b>${t.due ? `${DY[wdOf(dIdx(t.due))]} ${dmy(dIdx(t.due), 1)}` : "Open"}</b><small>${t.due && t.dueTime ? fmtT(hm(t.dueTime)) + " · Cairo time" : t.due ? "End of day" : "No deadline"}</small></div>
+        <div><span>${desk ? "Desk / page" : "Issued"}</span><b>${desk ? esc(desk.name) : dmy(Math.floor(cairoAt(t.createdAt) / 1440), 1)}</b><small>${desk ? "Issued " + dmy(Math.floor(cairoAt(t.createdAt) / 1440), 1) : "by " + esc((t.createdBy || {}).name || "")}</small></div>
+      </div>
+      ${t.details && t.details.trim() ? `<div class="tkc-s"><h4>Brief</h4><p dir="auto">${esc(t.details.trim())}</p></div>` : ""}
+      ${(t.checklist || []).length ? `<div class="tkc-s"><h4>Deliverables</h4><ul>${t.checklist.map((c) => `<li dir="auto"><i></i>${esc(c.t)}</li>`).join("")}</ul></div>` : ""}
+      ${(() => { const F = t.files || [], im = F.filter((x) => x.kind === "image"), vid = F.length - im.length; return F.length ? `<div class="tkc-s"><h4>Attachments · ${F.length}</h4>${im.length ? `<div class="tkc-a">${im.slice(0, 4).map((x) => `<img src="${esc(fileUrl(x))}" alt="">`).join("")}</div>` : ""}<p class="tkc-am">${im.length > 4 ? `+ ${im.length - 4} more photo${im.length - 4 === 1 ? "" : "s"} · ` : ""}${vid ? `▶ ${vid} video${vid === 1 ? "" : "s"} · ` : ""}All attachments are sent with this task.</p></div>` : ""; })()}
+      <div class="tkc-n"><b>When it's done</b> reply with <b>“Done ✅ ${esc(t.code)}”</b> and a screenshot or link as proof.<span dir="rtl">بعد التنفيذ ابعتي «تم ✅ ${esc(t.code)}» مع سكرين شوت أو لينك كإثبات.</span></div>
+    </div>
+    <div class="tkc-f"><span>Issued by ${esc((t.createdBy || {}).name || "Management")} · ${dmy(Math.floor(cairoAt(t.createdAt) / 1440), 1)}</span><span>Fémini · Team Operations Management</span></div></div>`;
+}
+async function renderPng(html) {
+  const box = document.createElement("div");
+  box.innerHTML = html; $("#exportStage").appendChild(box);
+  const node = box.firstElementChild;
+  try {
+    await document.fonts.ready;
+    await Promise.all([...node.querySelectorAll("img")].map((im) => (im.complete ? 0 : new Promise((r) => (im.onload = im.onerror = r)))));
+    const o = { pixelRatio: 2, cacheBust: false };
+    let url;
+    try { await htmlToImage.toPng(node, o); url = await htmlToImage.toPng(node, o); } catch { url = await htmlToImage.toPng(node, { ...o, skipFonts: true }); }
+    return await (await fetch(url)).blob();
+  } finally { box.remove(); }
+}
+const tkFile = (t) => `Femini-Task-${t.code}-${slug(tName(t))}.png`;
+// image + attachments are prepared ahead of time so Share still counts as a direct tap (Safari / iOS)
+function tkPrep(t) {
+  const key = t.id + "|" + (t.updatedAt || t.createdAt) + "|" + tName(t) + "|" + (t.files || []).map((x) => x.url).join();
+  if (TK.prep && TK.prep.key === key) return TK.prep.p;
+  const p = (async () => {
+    const blob = await renderPng(taskImageHTML(t)), files = [new File([blob], tkFile(t), { type: "image/png" })];
+    let bytes = 0;
+    for (const x of t.files || []) {
+      if (bytes + (x.size || 0) > 60 * 1048576) { files.tooBig = true; break; }
+      try { const bl = await (await fetch(fileUrl(x))).blob(); bytes += bl.size; files.push(new File([bl], x.name, { type: bl.type || (x.kind === "video" ? "video/mp4" : "image/jpeg") })); } catch {}
+    }
+    return files;
+  })();
+  TK.prep = { key, p }; p.catch(() => { TK.prep = null; });
+  return p;
+}
+async function taskImage(t, mode) {
+  if (mode === "copy") {
+    try { await navigator.clipboard.write([new ClipboardItem({ "image/png": tkPrep(t).then((f) => f[0]) })]); toast("Image copied — paste it in WhatsApp"); }
+    catch { toast("Your browser can't copy images — use Download instead", true); }
+    return;
+  }
+  if (!TK.prep || !TK.prep.key.startsWith(t.id + "|")) toast("Preparing image…");
+  const files = await tkPrep(t);
+  if (mode === "share" && canShareFiles()) {
+    const ok = (L) => { try { return navigator.canShare({ files: L }); } catch { return false; } };
+    if (files.tooBig) toast("Some attachments are too big to share at once — send them from the task", true);
+    try { await navigator.share({ files: ok(files) ? files : [files[0]], title: t.code }); return; } catch (e) { if (e.name === "AbortError") return; }
+  }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(files[0]); a.download = files[0].name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+/* ---- task detail ---- */
+const EVL = { created: "Task created", edited: "Edited", checklist: "Checklist updated", progress: "Marked in progress", done: "Marked done", approved: "Approved", returned: "Returned for rework", cancelled: "Cancelled", assigned: "Reopened", rated: "Rating changed", proof: "Proof added", proofRemoved: "Proof removed", files: "Attachments updated", fileAdded: "Attachment added", fileRemoved: "Attachment removed" };
+function openTask(id, fresh) {
+  const t = (TK.list || []).find((x) => x.id === id); if (!t) return;
+  TK.sel = id;
+  const D = V(), now = cairoNow().abs, [sl, sc] = TST[t.status], ot = tOnTime(t), admin = S.me && S.me.role === "admin";
+  const sc0 = $(".overlay .tkm .m-body")?.scrollTop;
+  const nowLocal = (() => { const c = cairoNow(); return `${c.date}T${pad(Math.floor(c.min / 60))}:${pad(Math.floor(c.min % 60))}`; })();
+  let act = "";
+  if (OPEN.has(t.status)) act = `<div class="panel"><h4>Record completion</h4><p class="muted" style="margin:0 0 10px;font-size:12.8px">When she replies that it's done, attach her reply / proof below, then mark it done.</p>
+      <div class="tkgrid" style="grid-template-columns:1fr 2fr"><label class="field">Completed at<input type="datetime-local" id="tkDoneAt" value="${nowLocal}"></label><label class="field">Her note<input type="text" id="tkDoneNote" dir="auto" placeholder="e.g. Done — link in the drive"></label></div>
+      <div class="row" style="justify-content:flex-end;margin-top:12px">${t.status === "assigned" ? `<button class="btn" data-act="tkSt" data-v="progress">Mark in progress</button>` : ""}<button class="btn primary" data-act="tkDone">✓ Mark as done</button></div></div>`;
+  else if (t.status === "done") act = `<div class="panel rvw"><h4>Review &amp; rate</h4><p class="muted" style="margin:0 0 10px;font-size:12.8px">Delivered ${t.doneAt ? logFmt.format(new Date(t.doneAt)) + " " + logTime.format(new Date(t.doneAt)) : ""}${ot == null ? "" : ot ? ` · <b style="color:var(--ok)">on time</b>` : ` · <b style="color:var(--bad)">late</b>`}. How good is the work?</p>
+      <div class="rate" id="tkRate">${[1, 2, 3, 4, 5].map((k) => `<button type="button" data-act="tkStar" data-v="${k}" class="${k <= TK.rate ? "on" : ""}">★</button>`).join("")}<span>${["Choose a rating", "Poor", "Below expectations", "Meets expectations", "Very good", "Outstanding"][TK.rate]}</span></div>
+      <label class="field" style="margin-top:10px">Review note<input type="text" id="tkRevNote" dir="auto" placeholder="Optional — what was good, what to improve"></label>
+      <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn" data-act="tkReturn">↩ Return for rework</button><button class="btn primary" data-act="tkApprove">Approve</button></div></div>`;
+  else if (t.status === "approved") act = `<div class="panel rvw"><h4>Approved</h4><div class="row" style="gap:12px">${stars(t.rating, 1)}<b>${["", "Poor", "Below expectations", "Meets expectations", "Very good", "Outstanding"][t.rating]}</b><span class="muted" style="font-size:12.5px">by ${esc((t.ratedBy || {}).name || "")}${t.reviewNote ? ` — “${esc(t.reviewNote)}”` : ""}</span></div>
+      <div class="row" style="margin-top:10px"><span class="muted" style="font-size:12px">Change rating:</span>${[1, 2, 3, 4, 5].map((k) => `<button class="btn sm ghost" data-act="tkRerate" data-v="${k}">${k}★</button>`).join("")}</div></div>`;
+  const meta = [["Assigned to", `<span class="who"><span class="av" style="--c:${esc(tColor(t))}">${esc(initials(tName(t)))}</span>${esc(tName(t))}</span>`], ["Deadline", t.due ? `${tDueTxt(t, 1)}` : "No deadline"], ["Priority", `<span class="pri ${t.priority}">${TPRI[t.priority]}</span>`], ["Attachments", `${(t.files || []).length} for her · ${(t.proof || []).length} proof`], ["Given", `${logFmt.format(new Date(t.createdAt))} · ${esc((t.createdBy || {}).name || "")}`],
+    ["Delivered", t.doneAt ? `${logFmt.format(new Date(t.doneAt))} ${logTime.format(new Date(t.doneAt))}${ot == null ? "" : ot ? ` <span class="stale ok">On time</span>` : ` <span class="stale bad">Late ${durTxt(cairoAt(t.doneAt) - tDueAbs(t))}</span>`}` : tOverdue(t, now) ? `<span class="stale bad">Overdue ${durTxt(now - tDueAbs(t))}</span>` : "—"], ["Turnaround", t.doneAt ? durTxt(cairoAt(t.doneAt) - cairoAt(t.createdAt)) : "—"], ["Returned", t.returns ? `${t.returns}×` : "Never"]];
+  $("#modalRoot").innerHTML = `<div class="overlay" data-act="tkClose"><div class="modal tkm"><div class="m-head"><h3><span class="code">${esc(t.code)}</span> ${esc(sl)}</h3><div class="row">
+      <button class="btn sm light" data-act="tkImg" data-v="download">⤓ Image</button>${canShareFiles() ? `<button class="btn sm light" data-act="tkImg" data-v="share">Share</button>` : ""}${window.ClipboardItem ? `<button class="btn sm light" data-act="tkImg" data-v="copy">Copy image</button>` : ""}
+      <button class="btn ghost" data-act="tkClose">✕</button></div></div>
+    <div class="m-body">
+      ${fresh ? `<div class="banner ok" style="margin-bottom:14px"><b>${esc(t.code)} is ready.</b> Send her the image below (Download / Share / Copy) — when she replies that it's done, come back here to attach her reply and rate it.</div>` : ""}
+      <div class="tkd">
+        <div>
+          <div class="tkh"><span class="tks ${sc}">${sl}</span><h2 dir="auto">${esc(t.title)}</h2></div>
+          <div class="tkmeta">${meta.map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`).join("")}</div>
+          ${t.details ? `<div class="panel"><h4>Brief</h4><p class="tkp" dir="auto">${esc(t.details)}</p></div>` : ""}
+          ${(t.checklist || []).length ? `<div class="panel"><h4>Deliverables · ${t.checklist.filter((c) => c.d).length}/${t.checklist.length}</h4>${t.checklist.map((c, j) => `<label class="tkck ${c.d ? "d" : ""}"><input type="checkbox" data-tkck="${j}" ${c.d ? "checked" : ""} ${t.status === "cancelled" ? "disabled" : ""}><span dir="auto">${esc(c.t)}</span></label>`).join("")}</div>` : ""}
+          <div class="panel"><h4>Attachments for her · ${(t.files || []).length}</h4>
+            <div class="row">${(t.files || []).map((x, j) => attTile(x, "tkAtt", j, ` data-k="${esc(t.id)}" data-l="files"`) + `<button class="rm" data-act="tkAttDel" data-l="files" data-j="${j}" title="Remove">✕</button></span>`).join("")}
+            ${t.status !== "cancelled" ? `<label class="btn sm">📎 Add photos / videos<input type="file" id="tkBriefFiles" accept="image/*,video/*" multiple class="hidden"></label>` : ""}</div>
+            ${(t.files || []).length ? `<div class="muted" style="font-size:11.5px;margin-top:8px">Photos show on the task image. <b>Share</b> sends the image together with all attachments${canShareFiles() ? "" : " (on a phone)"}.</div>` : ""}</div>
+          ${act}
+          ${t.doneNote ? `<div class="panel"><h4>Her note</h4><p class="tkp" dir="auto">${esc(t.doneNote)}</p></div>` : ""}
+          <div class="panel"><h4>Proof &amp; replies (${(t.proof || []).length})</h4>
+            <div class="row">${(t.proof || []).map((x, j) => `<span class="attx"><button class="att" data-act="tkAtt" data-l="proof" data-k="${esc(t.id)}" data-j="${j}" title="${esc(x.name)}">${x.kind === "video" ? `<span class="vid">▶</span>` : `<img src="${esc(fileUrl(x))}" alt="" loading="lazy">`}</button><button class="rm" data-act="tkAttDel" data-l="proof" data-j="${j}" title="Remove">✕</button></span>`).join("")}
+            <label class="btn sm">📎 Attach her reply / screenshot<input type="file" id="tkFiles" accept="image/*,video/*" multiple class="hidden"></label></div>
+            <div id="upStatus" class="upbar hidden" style="margin-top:10px"></div></div>
+        </div>
+        <div>
+          <div class="panel"><h4>Image she receives</h4><div class="tkprev"><div class="tkprev-in">${taskImageHTML(t)}</div></div></div>
+          <div class="panel"><h4>Timeline</h4><div class="tl">${(t.events || []).slice().reverse().map((e) => `<div><i class="${e.type}"></i><div><b>${EVL[e.type] || e.type}${e.rating ? ` · ${e.rating}★` : ""}</b>${e.note ? `<span dir="auto">${esc(e.note)}</span>` : ""}${e.fields ? `<span>${esc(e.fields.join(", "))}</span>` : ""}<small>${logFmt.format(new Date(e.at))} · ${logTime.format(new Date(e.at))} · ${esc((e.by || {}).name || "")}</small></div></div>`).join("")}</div></div>
+          <div class="row" style="justify-content:flex-end;flex-wrap:wrap">
+            ${t.status !== "cancelled" ? `<button class="btn sm" data-act="tkEdit">Edit</button>` : ""}
+            ${["approved", "done", "cancelled"].includes(t.status) ? `<button class="btn sm" data-act="tkSt" data-v="assigned">Reopen</button>` : ""}
+            ${OPEN.has(t.status) ? `<button class="btn sm ghost" data-act="tkSt" data-v="cancelled">Cancel task</button>` : ""}
+            ${admin ? `<button class="btn sm danger" data-act="tkDel">Delete</button>` : ""}</div>
+        </div>
+      </div></div></div></div>`;
+  const pv = $(".tkprev"); if (pv) { const k = pv.clientWidth / 1080; pv.firstElementChild.style.setProperty("--k", k); pv.style.height = pv.firstElementChild.firstElementChild.offsetHeight * k + "px"; }
+  if (sc0) $(".overlay .tkm .m-body").scrollTop = sc0;
+  $("#tkFiles").onchange = (e) => uploadFiles([...e.target.files], async (att) => { await tkOp({ op: "addProof", id: t.id, att }); openTask(t.id); });
+  if (canShareFiles() && t.status !== "cancelled") setTimeout(() => { if (TK.sel === t.id) tkPrep(t).catch(() => {}); }, 300);
+  const bf = $("#tkBriefFiles"); if (bf) bf.onchange = (e) => uploadFiles([...e.target.files], async (att) => { await tkOp({ op: "addProof", id: t.id, att, list: "files" }); openTask(t.id); });
+}
+function taskLightbox(t, j, list) {
+  const L = list === "files" ? t.files || [] : t.proof || [], a = L[j]; if (!a) return;
+  const media = a.kind === "video" ? `<video src="${esc(fileUrl(a))}" controls autoplay playsinline></video>` : `<img src="${esc(fileUrl(a))}" alt="${esc(a.name)}">`;
+  $("#lbRoot").innerHTML = `<div class="overlay lbo" data-act="closeLb"><div class="lb">
+    <div class="lb-h"><div><b>${esc(a.name)}</b><span>${esc(t.code)} · ${list === "files" ? "Brief attachment" : "Proof"} · ${esc(tName(t))}${a.size ? " · " + fmtSize(a.size) : ""}</span></div>
+      <div class="row">${L.length > 1 ? `<button class="btn sm light" data-act="tkAtt" data-l="${list || "proof"}" data-k="${esc(t.id)}" data-j="${(j - 1 + L.length) % L.length}">‹</button><button class="btn sm light" data-act="tkAtt" data-l="${list || "proof"}" data-k="${esc(t.id)}" data-j="${(j + 1) % L.length}">›</button>` : ""}
+      <a class="btn sm light" href="${esc(fileUrl(a))}" download="${esc(a.name)}">Download</a><button class="btn sm light" data-act="closeLb">✕</button></div></div>
+    <div class="lb-m">${media}</div></div></div>`;
+}
+async function tkAction(act, el, ev) {
+  const t = (TK.list || []).find((x) => x.id === TK.sel);
+  switch (act) {
+    case "tkLogin": return openLogin("__tasks");
+    case "tkNew": TK.sel = null; return openTaskForm(null);
+    case "tkSave": return saveTaskForm();
+    case "tkRefresh": return loadTasks();
+    case "tkTab": TK.tab = el.dataset.k; return renderTasks();
+    case "tkMemSel": TK.mem = TK.mem === el.dataset.k ? "" : el.dataset.k; return renderTasks();
+    case "tkOpen": TK.rate = 0; return openTask(el.dataset.k);
+    case "tkClose": if (el.tagName === "BUTTON" || (ev && ev.target === el)) { TK.sel = null; $("#modalRoot").innerHTML = ""; } return;
+    case "tkFFDel": readTaskForm(); TK.form.files.splice(+el.dataset.j, 1); return renderTaskForm();
+    case "tkFFView": { const x = TK.form.files[+el.dataset.j]; if (x) window.open(fileUrl(x), "_blank"); return; }
+    case "tkPri": document.querySelectorAll("#tkPri button").forEach((b) => b.classList.toggle("active", b === el)); return;
+    case "tkAtt": { const x = TK.list.find((y) => y.id === el.dataset.k); if (x) taskLightbox(x, +el.dataset.j, el.dataset.l); return; }
+  }
+  if (!t) return;
+  switch (act) {
+    case "tkImg": return taskImage(t, el.dataset.v);
+    case "tkEdit": return openTaskForm(t);
+    case "tkStar": TK.rate = +el.dataset.v; return openTask(t.id);
+    case "tkSt": {
+      const v = el.dataset.v;
+      if (v === "cancelled" && !confirm(`Cancel ${t.code}? It won't count in anyone's score.`)) return;
+      if (await tkOp({ op: "update", id: t.id, patch: { status: v } }, `${t.code}: ${TST[v][0]}`)) openTask(t.id);
+      return;
+    }
+    case "tkDone": {
+      const at = $("#tkDoneAt").value, note = $("#tkDoneNote").value.trim();
+      const doneAt = at ? new Date(Date.parse(at + ":00Z") - cairoOffsetMin(at) * 60e3).toISOString() : new Date().toISOString();
+      if (await tkOp({ op: "update", id: t.id, patch: { status: "done", doneAt, doneNote: note } }, `${t.code} marked done — now rate it`)) { TK.rate = 0; openTask(t.id); }
+      return;
+    }
+    case "tkApprove":
+      if (!TK.rate) return toast("Choose a rating (1–5 stars) first", true);
+      if (await tkOp({ op: "update", id: t.id, patch: { status: "approved", rating: TK.rate }, note: $("#tkRevNote").value.trim() }, `${t.code} approved · ${TK.rate}★`)) { TK.rate = 0; openTask(t.id); }
+      return;
+    case "tkReturn": {
+      const note = $("#tkRevNote").value.trim() || prompt("What needs to be fixed?") || "";
+      if (await tkOp({ op: "update", id: t.id, patch: { status: "returned" }, note }, `${t.code} returned for rework`)) { TK.rate = 0; openTask(t.id); }
+      return;
+    }
+    case "tkRerate": if (await tkOp({ op: "update", id: t.id, patch: { status: "approved", rating: +el.dataset.v } }, "Rating updated")) openTask(t.id); return;
+    case "tkAttDel": if (confirm("Remove this attachment?") && (await tkOp({ op: "delProof", id: t.id, j: +el.dataset.j, list: el.dataset.l || "proof" }))) openTask(t.id); return;
+    case "tkDel": if (confirm(`Delete ${t.code} permanently? This can't be undone. (Cancel keeps it on record.)`) && (await tkOp({ op: "delete", id: t.id }, `${t.code} deleted`))) { TK.sel = null; $("#modalRoot").innerHTML = ""; } return;
+  }
+}
+// minutes Cairo is ahead of UTC around a given local date-time (handles summer time)
+function cairoOffsetMin(local) {
+  const guess = new Date(local + ":00Z");
+  return cairoAt(guess) - Math.floor(guess.getTime() / 60000);
+}
+
 /* ============================ admin ============================ */
 function openAdmin(tab) {
   if (!S.token || !S.me) return openLogin(tab);
@@ -1980,13 +2838,14 @@ function openLogin(tab, msg) {
       const j = await call("/api/auth", "POST", { username: $("#liUser").value.trim(), password: $("#liPass").value });
       S.token = j.token; S.me = j.user; localStorage.setItem("fs_token", S.token);
       toast(`Welcome, ${S.me.name}`); renderHeader();
-      if (tab === "__reports") { $("#modalRoot").innerHTML = ""; RS.raw = null; showView("reports"); } else openAdmin(tab);
+      if (tab === "__reports") { $("#modalRoot").innerHTML = ""; RS.raw = null; showView("reports"); } else if (tab === "__tasks") { $("#modalRoot").innerHTML = ""; TK.list = null; showView("tasks"); } else openAdmin(tab);
     } catch (err) { toast(err.status === 401 ? "Wrong username or password" : err.message, true); }
   };
 }
 function signedOut(msg) {
   S.token = ""; S.me = null; S.users = null; localStorage.removeItem("fs_token");
   RS.raw = null; RS.error = ""; renderReports();
+  TK.list = null; TK.error = ""; TK.sel = null; renderTasks();
   const keep = S.admin.open; S.admin.open = false;
   renderHeader();
   if (keep || msg) openLogin(S.admin.tab, msg);
@@ -1996,6 +2855,7 @@ async function checkSession() {
   try { const j = await call("/api/auth", "GET"); S.me = j.user; } catch (e) { if (e.status === 401) { S.token = ""; localStorage.removeItem("fs_token"); } }
   renderHeader();
   if (location.hash === "#reports") showView("reports");
+  if (location.hash === "#tasks") showView("tasks");
 }
 async function loadUsers() {
   try { S.users = (await call("/api/users", "GET")).users; } catch (e) { S.users = []; if (e.status === 401) return signedOut("Please sign in again."); toast(e.message, true); }
@@ -2211,8 +3071,17 @@ document.addEventListener("change", (e) => {
 });
 document.addEventListener("input", (e) => {
   if (e.target.id === "repFq") { RS.fq = e.target.value; RS.feedAll = false; renderReports(); }
+  if (e.target.id === "tkQ") { TK.q = e.target.value; renderTasks(); }
 });
 document.addEventListener("change", (e) => {
+  if (e.target.id === "pfPeriod" || e.target.id === "pfFrom" || e.target.id === "pfTo") {
+    if (e.target.id === "pfPeriod") { PF.period = e.target.value; if (PF.period === "custom" && !PF.from) { const r = pfRange(); PF.from = iDate(r[0]); PF.to = iDate(r[1]); } }
+    else { PF[e.target.id === "pfFrom" ? "from" : "to"] = e.target.value; PF.period = "custom"; }
+    e.target.blur(); renderProfiles(); if (PF.sel && $("#modalRoot .pfm")) openProfile(PF.sel); return;
+  }
+  if (e.target.id === "tkPeriod") { TK.period = e.target.value; return renderTasks(); }
+  if (e.target.id === "tkMem") { TK.mem = e.target.value; return renderTasks(); }
+  if (e.target.dataset && e.target.dataset.tkck != null) { const t = TK.list.find((x) => x.id === TK.sel); if (!t) return; const cl = t.checklist.map((c, j) => (j === +e.target.dataset.tkck ? { ...c, d: e.target.checked } : c)); tkOp({ op: "update", id: t.id, patch: { checklist: cl } }).then((r) => r && openTask(t.id)); return; }
   if (e.target.id === "repFrom" || e.target.id === "repTo") { RS.from = $("#repFrom").value; RS.to = $("#repTo").value; RS.preset = "custom"; return renderReports(); }
   if (e.target.id === "repPreset") { RS.preset = e.target.value; if (RS.preset === "custom") { const r = repRange(); RS.from = RS.from || iDate(r.a); RS.to = RS.to || iDate(r.b); } return renderReports(); }
   if (e.target.id === "repCmp") { RS.cmp = e.target.value; return renderReports(); }
@@ -2240,11 +3109,13 @@ document.addEventListener("click", async (e) => {
   const el = e.target.closest("[data-act]");
   if (!el) return;
   const act = el.dataset.act, D = S.draft, p = el.dataset.path, i = +el.dataset.i;
+  if (act.startsWith("tk")) return tkAction(act, el, e);
+  if (act.startsWith("pf") || act === "recImg" || act === "recOne" || act === "recOneShare") return pfAction(act, el, e);
   const R = () => renderAll();
   const wkKey = () => iDate(viewWS());
   switch (act) {
     case "overlay": if (e.target === el) closeAdmin(); return;
-    case "view": if (el.dataset.v === "reports" && !S.me) return openLogin("__reports"); return showView(el.dataset.v);
+    case "view": if (el.dataset.v === "reports" && !S.me) return openLogin("__reports"); if (el.dataset.v === "tasks" && !S.me) return openLogin("__tasks"); return showView(el.dataset.v);
     case "repLogin": return openLogin("__reports");
     case "repReset": Object.assign(RS, { preset: "thisMonth", cmp: "prev", mem: "", shift: "", from: "", to: "", fmem: "", fq: "" }); return renderReports();
     case "repRefresh": return loadReports(true);
