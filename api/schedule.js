@@ -1,30 +1,13 @@
-// Vercel serverless function — stores the schedule as JSON in Vercel Blob.
-// GET  /api/schedule           → { data }            (public, read-only)
-// POST /api/schedule           → { ok }              (verify PIN, header x-admin-pin)
-// PUT  /api/schedule  {data, baseUpdatedAt} → { ok, updatedAt }   (PIN required)
+// GET /api/schedule                         → { data }          (public, read-only)
+// PUT /api/schedule {data, baseUpdatedAt, changes}  (signed in) → { ok, updatedAt, entry }
 //
 // Env vars:
-//   BLOB_READ_WRITE_TOKEN  — added automatically when a Blob store is connected to the project
-//   ADMIN_PIN              — the PIN used to edit the schedule
-//   BLOB_ACCESS            — optional: 'private' (default) or 'public', must match the store's access type
-import { put, list, del, get } from '@vercel/blob';
-
-const PREFIX = 'team-shifts/schedule';
-const ACCESS = process.env.BLOB_ACCESS === 'public' ? 'public' : 'private';
-const KEEP_VERSIONS = 15; // older versions are kept as a short history/backup
-
-async function listVersions() {
-  const { blobs } = await list({ prefix: PREFIX, limit: 1000 });
-  return blobs.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
-}
-
-async function readLatest() {
-  const versions = await listVersions();
-  if (!versions.length) return null;
-  const r = await get(versions[0].url, { access: ACCESS, useCache: false });
-  if (!r) return null;
-  return new Response(r.stream).json();
-}
+//   BLOB_READ_WRITE_TOKEN — added automatically when the Blob store is connected
+//   ADMIN_PIN             — password of the built-in "owner" account
+//   SESSION_SECRET        — signs login sessions
+//   OWNER_NAME            — optional display name for the owner account
+//   BLOB_ACCESS           — optional: 'private' (default) or 'public'
+import { readJSON, writeJSON, SCHEDULE, userFromToken, bearer, parseBody } from './_lib.js';
 
 function validate(d) {
   if (!d || typeof d !== 'object') return 'data missing';
@@ -32,69 +15,43 @@ function validate(d) {
   if (!d.template || typeof d.template !== 'object') return 'template missing';
   if (!d.weeks || typeof d.weeks !== 'object') return 'weeks missing';
   if (!d.settings || typeof d.settings !== 'object') return 'settings missing';
-  if (JSON.stringify(d).length > 900_000) return 'data too large';
+  if (JSON.stringify(d).length > 3_000_000) return 'data too large';
   return null;
 }
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   try {
-    if (req.method === 'GET') {
-      const data = await readLatest();
-      return res.status(200).json({ data });
-    }
+    if (req.method === 'GET') return res.status(200).json({ data: await readJSON(SCHEDULE) });
 
-    if (req.method !== 'POST' && req.method !== 'PUT') {
-      res.setHeader('Allow', 'GET, POST, PUT');
+    if (req.method !== 'PUT') {
+      res.setHeader('Allow', 'GET, PUT');
       return res.status(405).json({ error: 'method not allowed' });
     }
+    const me = await userFromToken(bearer(req));
+    if (!me) return res.status(401).json({ error: 'Please sign in again' });
 
-    if (!process.env.ADMIN_PIN) {
-      return res.status(500).json({ error: 'ADMIN_PIN is not set in the Vercel environment variables' });
-    }
-    const pin = String(req.headers['x-admin-pin'] || '');
-    if (pin !== String(process.env.ADMIN_PIN)) {
-      await sleep(700); // slow down guessing
-      return res.status(401).json({ error: 'Wrong PIN' });
-    }
-
-    if (req.method === 'POST') return res.status(200).json({ ok: true });
-
-    // PUT — save
-    const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body || {};
+    const body = parseBody(req);
     const data = body.data;
     const err = validate(data);
     if (err) return res.status(400).json({ error: err });
 
-    const current = await readLatest();
+    const current = await readJSON(SCHEDULE);
     if (current && current.updatedAt && body.baseUpdatedAt !== current.updatedAt && !body.force) {
-      return res.status(409).json({
-        error: 'Someone else saved changes first. Refresh the page, then edit again.',
-        updatedAt: current.updatedAt,
-      });
+      return res.status(409).json({ error: 'Someone else saved changes first. Refresh the page, then edit again.', updatedAt: current.updatedAt });
     }
 
     data.updatedAt = new Date().toISOString();
-    // activity log — the server stamps the time; history comes from the stored copy, not the client
+    data.updatedBy = me.name;
+    // activity log — the server stamps time and author; history comes from the stored copy, not the client
     const changes = Array.isArray(body.changes)
       ? body.changes.filter((x) => typeof x === 'string' && x.trim()).slice(0, 200).map((x) => x.slice(0, 400))
       : [];
     const prevLog = current && Array.isArray(current.log) ? current.log : [];
-    const entry = changes.length ? { at: data.updatedAt, changes } : null;
+    const entry = changes.length ? { at: data.updatedAt, by: { username: me.username, name: me.name }, changes } : null;
     data.log = entry ? [entry, ...prevLog].slice(0, 500) : prevLog;
-    await put(PREFIX + '.json', JSON.stringify(data), {
-      access: ACCESS,
-      addRandomSuffix: true, // every save gets a unique, never-stale URL
-      contentType: 'application/json',
-    });
 
-    // trim old versions
-    const versions = await listVersions();
-    const old = versions.slice(KEEP_VERSIONS).map((b) => b.url);
-    if (old.length) await del(old);
-
+    await writeJSON(SCHEDULE, data);
     return res.status(200).json({ ok: true, updatedAt: data.updatedAt, entry });
   } catch (e) {
     return res.status(500).json({ error: String((e && e.message) || e) });

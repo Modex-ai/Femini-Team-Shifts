@@ -1,8 +1,9 @@
 // Serves attachments from the private Blob store (with Range support so videos stream and seek).
 // GET    /api/file?u=<blob url>                → the file
-// DELETE /api/file?u=<blob url>  (x-admin-pin) → deletes the file
+// DELETE /api/file?u=<blob url>  (signed in) → deletes the file
 import { get, del } from '@vercel/blob';
 import { Readable } from 'node:stream';
+import { userFromToken, bearer } from './_lib.js';
 
 const ACCESS = process.env.BLOB_ACCESS === 'public' ? 'public' : 'private';
 const PREFIX = '/team-shifts/attachments/';
@@ -22,9 +23,7 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'DELETE') {
-      if (!process.env.ADMIN_PIN || String(req.headers['x-admin-pin'] || '') !== String(process.env.ADMIN_PIN)) {
-        return res.status(401).json({ error: 'Wrong PIN' });
-      }
+      if (!(await userFromToken(bearer(req)))) return res.status(401).json({ error: 'Please sign in again' });
       await del(u);
       return res.status(200).json({ ok: true });
     }

@@ -1,6 +1,7 @@
 // Issues short-lived client tokens so the browser can upload photos/videos
-// straight to Vercel Blob (no 4.5 MB function body limit). PIN required.
+// straight to Vercel Blob (no 4.5 MB function body limit). Signed-in users only.
 import { handleUpload } from '@vercel/blob/client';
+import { userFromToken } from './_lib.js';
 
 const PREFIX = 'team-shifts/attachments/';
 
@@ -16,9 +17,9 @@ export default async function handler(req, res) {
       body,
       request: req,
       onBeforeGenerateToken: async (pathname, clientPayload) => {
-        let pin = '';
-        try { pin = JSON.parse(clientPayload || '{}').pin || ''; } catch {}
-        if (!process.env.ADMIN_PIN || String(pin) !== String(process.env.ADMIN_PIN)) throw new Error('Wrong PIN');
+        let token = '';
+        try { token = JSON.parse(clientPayload || '{}').token || ''; } catch {}
+        if (!(await userFromToken(token))) throw new Error('Please sign in again');
         if (!pathname.startsWith(PREFIX)) throw new Error('Invalid upload path');
         return {
           allowedContentTypes: ['image/*', 'video/*'],

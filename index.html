@@ -336,6 +336,16 @@ input:focus,select:focus{outline:3px solid var(--lav);border-color:var(--brand-3
 .rqform .wide{grid-column:span 2}
 .rqrow{display:grid;grid-template-columns:110px 1fr 150px auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
 .xcard .xd .rql{font-size:16px;font-weight:700;color:var(--brand);margin-top:4px}
+.userchip{display:flex;align-items:center;gap:8px;font-size:12.5px;color:rgba(255,255,255,.85)}
+.userchip .uav{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center;font-weight:700;font-size:12px;color:#fff}
+.userchip b{display:block;color:#fff;font-size:13px;line-height:1.1}.userchip small{opacity:.65;font-size:11px}
+.le .who{display:inline-flex;align-items:center;gap:6px;margin-left:8px;font-size:11.5px;font-weight:700;color:var(--brand);background:var(--lav-2);border:1px solid var(--lav);border-radius:999px;padding:1px 9px}
+.utbl{width:100%;border-collapse:collapse;font-size:13px}
+.utbl th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+.utbl td{padding:9px 10px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+.rb{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;border-radius:6px;padding:2px 8px}
+.rb.admin{background:var(--plum);color:#fff}.rb.editor{background:var(--lav);color:var(--brand)}.rb.off{background:var(--bad-bg);color:var(--bad)}
+.logbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
 @media (max-width:900px){
   .rqform{grid-template-columns:1fr 1fr}
   .rqrow{grid-template-columns:1fr 1fr}
@@ -389,6 +399,7 @@ input:focus,select:focus{outline:3px solid var(--lav);border-color:var(--brand-3
     </div>
     <div class="hero-right">
       <div class="clock"><div class="t" id="clockTime">--:--</div><div class="d" id="clockDate"></div></div>
+      <div class="userchip hidden" id="userChip"></div>
       <button class="btn light" id="adminBtn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span>Manage</span></button>
     </div>
   </div>
@@ -454,7 +465,7 @@ input:focus,select:focus{outline:3px solid var(--lav);border-color:var(--brand-3
 
   <section class="card">
     <div class="sh">
-      <div><div class="eyebrow">Audit trail</div><h2>Activity Log</h2><div class="sub">Every saved change, with date, time and what was done.</div></div>
+      <div><div class="eyebrow">Audit trail</div><h2>Activity Log</h2><div class="sub">Every saved change — who made it, when, and what was done.</div></div>
     </div>
     <div id="logList"></div>
   </section>
@@ -646,7 +657,7 @@ function weekStats(D, ws) {
 /* ============================ state ============================ */
 const S = {
   data: clone(DEFAULT_DATA), draft: null,
-  pin: sessionStorage.getItem("fs_pin") || "",
+  token: localStorage.getItem("fs_token") || "", me: null, users: null, logUser: "",
   serverOK: false, fresh: false,
   tlDay: null, weekOffset: 0,
   admin: { open: false, tab: "week", day: 0, wd: 0, newDate: "", newSrc: "prev" },
@@ -693,7 +704,10 @@ async function load(silent) {
   renderAll();
 }
 async function api(method, body) {
-  const r = await fetch("/api/schedule", { method, headers: { "content-type": "application/json", "x-admin-pin": S.pin }, body: body ? JSON.stringify(body) : undefined });
+  return call("/api/schedule", method, body);
+}
+async function call(url, method, body) {
+  const r = await fetch(url, { method, headers: { "content-type": "application/json", ...(S.token ? { authorization: "Bearer " + S.token } : {}) }, body: body ? JSON.stringify(body) : undefined });
   let j = {}; try { j = await r.json(); } catch {}
   if (!r.ok) throw Object.assign(new Error(j.error || "Error " + r.status), { status: r.status });
   return j;
@@ -710,8 +724,8 @@ async function save() {
     S.data = clone(S.draft); S.fresh = false; S.restored = false;
     toast("Saved — the team sees it now");
   } catch (e) {
-    if (e.status === 401) { S.pin = ""; sessionStorage.removeItem("fs_pin"); }
-    toast(e.status === 409 ? "Someone else saved changes first. Refresh the page, then edit again." : e.status === 401 ? "Wrong PIN" : e.message, true);
+    if (e.status === 401) signedOut("Your session ended — sign in again, then save. Your changes are kept.");
+    else toast(e.status === 409 ? "Someone else saved changes first. Refresh the page, then edit again." : e.message, true);
   }
   renderAll();
 }
@@ -726,6 +740,9 @@ function renderHeader() {
   const n = cairoNow();
   $("#clockTime").textContent = fmtT(n.abs);
   $("#clockDate").textContent = `${DAYS[wdOf(n.idx)]}, ${dmy(n.idx, 1)} · Cairo`;
+  const uc = $("#userChip");
+  uc.classList.toggle("hidden", !S.me);
+  if (S.me) uc.innerHTML = `<div class="uav">${esc(initials(S.me.name))}</div><div><b>${esc(S.me.name)}</b><small>${S.me.role === "admin" ? "Admin" : "Editor"} · <a href="#" data-act="logout" style="color:inherit">Sign out</a></small></div>`;
 }
 function renderKpis() {
   const D = V(), n = cairoNow(), ci = opIdxOf(D, n.abs);
@@ -980,7 +997,7 @@ async function uploadFiles(files, done) {
     try {
       st(`Uploading ${file.name} — 0%`);
       const b = await mod.upload(`team-shifts/attachments/${Date.now().toString(36)}-${safe}`, file, {
-        access: "private", handleUploadUrl: "/api/upload", clientPayload: JSON.stringify({ pin: S.pin }),
+        access: "private", handleUploadUrl: "/api/upload", clientPayload: JSON.stringify({ token: S.token }),
         multipart: file.size > 20 * 1048576,
         onUploadProgress: (p) => st(`Uploading ${file.name} — ${Math.round(p.percentage)}%`),
       });
@@ -1001,7 +1018,7 @@ function renderRequests() {
     return `<div class="req"><div class="dt"><b>${new Date(d * 864e5).getUTCDate()}</b><span>${DY[wdOf(d)]} · ${MON[new Date(d * 864e5).getUTCMonth()]}</span></div>
       <div><div class="tt"><span class="tp ${r.type}">${REQ_TYPES[r.type] || r.type}</span>${esc(reqTitle(D, r))}${r.ref ? `<span class="ref">${esc(r.ref)}</span>` : ""}${r.type === "swap" && r.applied ? ` <span class="chip-s pub">Applied to schedule</span>` : ""}${(r.attachments || []).length ? `<span class="ref">📎 ${r.attachments.length}</span>` : ""}</div>
         ${adj ? `<div class="dd"><b>Reason:</b> ${esc(r.reason || "—")}${r.details ? " — " + esc(r.details) : ""}</div>` : r.details ? `<div class="dd">${esc(r.details)}</div>` : ""}
-        ${attThumbs(r)}</div>
+        ${attThumbs(r)}${r.createdBy ? `<div class="ref" style="margin-top:4px">Logged by ${esc(r.createdBy)}</div>` : ""}</div>
       <div class="st2 row" style="gap:14px">${adj ? `<span class="amt ${r.type}">${ADJ[r.type].sign} ${esc(dedText(r))}</span>` : ""}<span class="ss ${stClass(r)}">${stLabel(r)}</span></div></div>`;
   }).join("")}</div>` : `<div class="empty">No excuses, shift changes, deductions or bonuses for this week.</div>`);
 }
@@ -1033,10 +1050,14 @@ const logTime = new Intl.DateTimeFormat("en-US", { timeZone: "Africa/Cairo", hou
 function renderLog() {
   const L = S.data.log || [];
   if (!L.length) { $("#logList").innerHTML = `<div class="empty">No changes recorded yet. Every save from Manage will appear here.</div>`; return; }
-  const show = S.logAll ? L : L.slice(0, 8);
-  $("#logList").innerHTML = `<div class="log">${show.map((e) => { const d = new Date(e.at);
-    return `<div class="le"><div class="when">${logFmt.format(d)}<span>${logTime.format(d)} · ${e.changes.length} change${e.changes.length === 1 ? "" : "s"}</span></div><ul>${e.changes.map((c) => `<li>${esc(c).replace(/^([^:]+:)/, "<b>$1</b>")}</li>`).join("")}</ul></div>`; }).join("")}</div>` +
-    (L.length > 8 ? `<button class="btn sm" id="logMore">${S.logAll ? "Show less" : `Show all (${L.length})`}</button>` : "");
+  const who = (e) => (e.by && e.by.name) || "Before user accounts";
+  const names = [...new Set(L.map(who))];
+  const F = S.logUser ? L.filter((e) => who(e) === S.logUser) : L;
+  const show = S.logAll ? F : F.slice(0, 8);
+  $("#logList").innerHTML = `<div class="logbar"><select id="logUser" style="padding:5px 8px;font-size:12px"><option value="">All users</option>${names.map((n) => `<option ${n === S.logUser ? "selected" : ""}>${esc(n)}</option>`).join("")}</select><span class="muted" style="font-size:12px">${F.length} save${F.length === 1 ? "" : "s"}</span></div>
+    <div class="log">${show.map((e) => { const d = new Date(e.at);
+    return `<div class="le"><div class="when">${logFmt.format(d)}<span>${logTime.format(d)} · ${e.changes.length} change${e.changes.length === 1 ? "" : "s"}</span><span class="who">👤 ${esc(who(e))}</span></div><ul>${e.changes.map((c) => `<li>${esc(c).replace(/^([^:]+:)/, "<b>$1</b>")}</li>`).join("")}</ul></div>`; }).join("")}</div>` +
+    (F.length > 8 ? `<button class="btn sm" id="logMore">${S.logAll ? "Show less" : `Show all (${F.length})`}</button>` : "");
 }
 function diffData(A, B) {
   const out = [];
@@ -1176,23 +1197,48 @@ async function saveCard(id, share) {
 
 /* ============================ admin ============================ */
 function openAdmin(tab) {
-  if (!S.pin) return openPin(tab);
+  if (!S.token || !S.me) return openLogin(tab);
   if (!S.draft) S.draft = clone(S.data);
   S.admin.open = true; if (tab) S.admin.tab = tab;
   renderAll();
 }
 function closeAdmin() { S.admin.open = false; $("#modalRoot").innerHTML = ""; renderAll(); }
-function openPin(tab) {
+function openLogin(tab, msg) {
   if (!S.serverOK) return toast("Not connected to the server — editing works on the live Vercel site.", true);
-  $("#modalRoot").innerHTML = `<div class="overlay"><div class="modal small"><div class="m-head"><h3>Manager access</h3><button class="btn ghost" data-act="closeModal">✕</button></div>
-    <form class="m-body" id="pinForm"><label class="field">PIN<input type="password" id="pinIn" inputmode="numeric" autocomplete="current-password"></label>
-    <div class="row" style="margin-top:16px;justify-content:flex-end"><button class="btn primary" type="submit">Unlock</button></div></form></div></div>`;
-  $("#pinIn").focus();
-  $("#pinForm").onsubmit = async (e) => {
-    e.preventDefault(); S.pin = $("#pinIn").value.trim();
-    try { await api("POST"); sessionStorage.setItem("fs_pin", S.pin); openAdmin(tab); }
-    catch (err) { S.pin = ""; toast(err.status === 401 ? "Wrong PIN" : err.message, true); }
+  $("#modalRoot").innerHTML = `<div class="overlay"><div class="modal small"><div class="m-head"><h3>Sign in</h3><button class="btn ghost" data-act="closeModal">✕</button></div>
+    <form class="m-body" id="loginForm">${msg ? `<div class="banner warn" style="margin-bottom:12px">${esc(msg)}</div>` : ""}
+    <label class="field">Username<input type="text" id="liUser" autocomplete="username" autocapitalize="none" spellcheck="false"></label>
+    <label class="field" style="margin-top:10px">Password<input type="password" id="liPass" autocomplete="current-password"></label>
+    <div class="row" style="margin-top:16px;justify-content:flex-end"><button class="btn primary" type="submit">Sign in</button></div></form></div></div>`;
+  $("#liUser").focus();
+  $("#loginForm").onsubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const j = await call("/api/auth", "POST", { username: $("#liUser").value.trim(), password: $("#liPass").value });
+      S.token = j.token; S.me = j.user; localStorage.setItem("fs_token", S.token);
+      toast(`Welcome, ${S.me.name}`); renderHeader(); openAdmin(tab);
+    } catch (err) { toast(err.status === 401 ? "Wrong username or password" : err.message, true); }
   };
+}
+function signedOut(msg) {
+  S.token = ""; S.me = null; S.users = null; localStorage.removeItem("fs_token");
+  const keep = S.admin.open; S.admin.open = false;
+  renderHeader();
+  if (keep || msg) openLogin(S.admin.tab, msg);
+}
+async function checkSession() {
+  if (!S.token) return;
+  try { const j = await call("/api/auth", "GET"); S.me = j.user; } catch (e) { if (e.status === 401) { S.token = ""; localStorage.removeItem("fs_token"); } }
+  renderHeader();
+}
+async function loadUsers() {
+  try { S.users = (await call("/api/users", "GET")).users; } catch (e) { S.users = []; if (e.status === 401) return signedOut("Please sign in again."); toast(e.message, true); }
+  if (S.admin.open && S.admin.tab === "users") renderAdmin();
+}
+async function userAction(method, body, okMsg) {
+  try { S.users = (await call("/api/users", method, body)).users; toast(okMsg); load(true); }
+  catch (e) { if (e.status === 401) return signedOut("Please sign in again."); toast(e.message, true); }
+  if (S.admin.open) renderAdmin();
 }
 function memberOptions(list, sel) { return list.map((m) => `<option value="${esc(m.id)}" ${m.id === sel ? "selected" : ""}>${esc(m.name)}</option>`).join(""); }
 function blocksEditor(D, list, path, i, members) {
@@ -1222,7 +1268,7 @@ function blocksEditor(D, list, path, i, members) {
 }
 function renderAdmin() {
   const D = S.draft, A = S.admin;
-  const tabs = [["week", "Week editor"], ["new", "New week"], ["team", "Team"], ["template", "Default template"], ["requests", "Excuses & swaps"], ["breaks", "Break rules"], ["settings", "Settings"]];
+  const tabs = [["week", "Week editor"], ["new", "New week"], ["team", "Team"], ["template", "Default template"], ["requests", "Excuses & swaps"], ["breaks", "Break rules"], ["settings", "Settings"]].concat(S.me && S.me.role === "admin" ? [["users", "Users"]] : []);
   let body = "";
   if (A.tab === "week") {
     const ws = viewWS(), key = iDate(ws), w = D.weeks[key];
@@ -1322,6 +1368,24 @@ function renderAdmin() {
       <select data-path="requests.${k}.status">${["pending", "approved", "rejected"].map((x) => `<option value="${x}" ${x === r.status ? "selected" : ""}>${stLabel({ type: r.type, status: x })}</option>`).join("")}</select>
       <div class="row" style="justify-content:flex-end">${r.type === "swap" ? (r.applied ? `<span class="chip-s pub">✓ Applied</span>` : `<button class="btn sm" data-act="reqApply" data-i="${k}">Apply swap</button>`) : ""}<button class="btn sm danger" data-act="delItem" data-path="requests" data-i="${k}">Delete</button></div></div>`;
     }).join("") : `<div class="muted">No records yet.</div>`) + `</div>`;
+  } else if (A.tab === "users") {
+    if (!S.users) { body += `<div class="muted">Loading users…</div>`; loadUsers(); }
+    else {
+      const ago = (t) => { if (!t) return "Never"; const d = new Date(t); return logFmt.format(d) + " · " + logTime.format(d); };
+      body += `<div class="panel"><h4>Add user</h4><div class="rqform">
+        <label class="field">Full name<input type="text" id="nuName" placeholder="e.g. Mai Ahmed"></label>
+        <label class="field">Username<input type="text" id="nuUser" placeholder="e.g. mai" autocapitalize="none" spellcheck="false"></label>
+        <label class="field">Role<select id="nuRole"><option value="editor">Editor — edit schedule &amp; records</option><option value="admin">Admin — everything + users</option></select></label>
+        <label class="field">Password<input type="text" id="nuPass" placeholder="At least 6 characters" autocomplete="new-password"></label>
+      </div><div class="row" style="justify-content:space-between;margin-top:12px"><span class="muted" style="font-size:12px">Share the username and password with the person. They can sign in from the Manage button.</span><button class="btn primary" data-act="userCreate">Create user</button></div></div>
+      <div class="panel"><h4>Users (${S.users.length + 1})</h4><div style="overflow-x:auto"><table class="utbl"><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Last sign-in</th><th>Created</th><th></th></tr></thead><tbody>
+        <tr><td><b>${esc(S.me.username === "owner" ? S.me.name : "Owner")}</b></td><td>owner</td><td><span class="rb admin">Owner</span></td><td colspan="2" class="muted" style="font-size:12px">Built-in account · password is your PIN</td><td></td></tr>
+        ${S.users.map((u) => `<tr style="${u.disabled ? "opacity:.6" : ""}"><td><b>${esc(u.name)}</b></td><td>@${esc(u.username)}</td>
+          <td>${u.username === S.me.username ? `<span class="rb ${u.role}">${u.role}</span>` : `<select data-act2="userRole" data-u="${esc(u.username)}" style="padding:4px 6px;font-size:12px"><option value="editor" ${u.role === "editor" ? "selected" : ""}>Editor</option><option value="admin" ${u.role === "admin" ? "selected" : ""}>Admin</option></select>`}${u.disabled ? ` <span class="rb off">Disabled</span>` : ""}</td>
+          <td style="font-size:12px">${esc(ago(u.lastLogin))}</td><td style="font-size:12px">${esc(ago(u.createdAt))}${u.createdBy ? `<br><span class="muted">by ${esc(u.createdBy)}</span>` : ""}</td>
+          <td><div class="row" style="justify-content:flex-end;gap:6px">${u.username === S.me.username ? `<span class="muted" style="font-size:12px">You</span>` : `<button class="btn sm" data-act="userPass" data-u="${esc(u.username)}">Reset password</button><button class="btn sm" data-act="userToggle" data-u="${esc(u.username)}">${u.disabled ? "Enable" : "Disable"}</button><button class="btn sm danger" data-act="userDelete" data-u="${esc(u.username)}">Delete</button>`}</div></td></tr>`).join("")}
+      </tbody></table></div></div>`;
+    }
   } else if (A.tab === "settings") {
     body += `<div class="row" style="gap:20px;align-items:end">
       <label class="field">Schedule day starts at<input type="time" step="900" data-path="settings.dayStart" value="${esc(D.settings.dayStart)}"></label>
@@ -1371,6 +1435,12 @@ function buildWeek(D, ws, src, pickKey) {
 const getPath = (o, p) => p.split(".").reduce((x, k) => (x == null ? x : x[k]), o);
 function setPath(o, p, v) { const ks = p.split("."), last = ks.pop(); getPath(o, ks.join("."))[last] = v; }
 
+document.addEventListener("change", (e) => {
+  const el = e.target.closest("[data-act2=userRole]");
+  if (el) userAction("PATCH", { username: el.dataset.u, role: el.value }, "Role updated");
+  const lf = e.target.closest("#logUser");
+  if (lf) { S.logUser = lf.value; renderLog(); }
+});
 document.addEventListener("input", onEdit);
 document.addEventListener("change", onEdit);
 function onEdit(e) {
@@ -1459,7 +1529,7 @@ document.addEventListener("click", async (e) => {
       const f = S.admin.rq;
       if (!f.date) return toast("Pick a date", true);
       if (f.type === "swap" && f.member === f.withMember) return toast("Pick two different people for a swap", true);
-      const r = { id: "r" + Date.now().toString(36), type: f.type, date: f.date, member: f.member, details: f.details.trim(), status: f.status, createdAt: new Date().toISOString() };
+      const r = { id: "r" + Date.now().toString(36), type: f.type, date: f.date, member: f.member, details: f.details.trim(), status: f.status, createdAt: new Date().toISOString(), createdBy: S.me ? S.me.name : "" };
       if (f.type === "swap") { r.withMember = f.withMember; if (f.withDate && f.withDate !== f.date) r.withDate = f.withDate; }
       if (ADJ[f.type]) {
         r.amount = Math.max(0, +f.amount || 0); r.reason = f.reason;
@@ -1477,7 +1547,15 @@ document.addEventListener("click", async (e) => {
     case "recAttDel": if (confirm("Remove this attachment from the record?")) D.requests[i].attachments.splice(+el.dataset.j, 1); return R();
     case "reqApply": { const ok = applySwap(D, D.requests[i]); toast(ok ? "Swap applied to the schedule" : "No matching shifts to swap on that date", !ok); return R(); }
     case "openCreate": S.admin.day = 0; return openAdmin("week");
-    case "logout": S.pin = ""; sessionStorage.removeItem("fs_pin"); S.draft = null; return closeAdmin();
+    case "logout": e.preventDefault(); if (dirty() && !confirm("Sign out and discard unsaved changes?")) return; S.draft = null; S.admin.open = false; $("#modalRoot").innerHTML = ""; signedOut(); toast("Signed out"); return renderAll();
+    case "userCreate": {
+      const body = { name: $("#nuName").value.trim(), username: $("#nuUser").value.trim().toLowerCase(), role: $("#nuRole").value, password: $("#nuPass").value };
+      if (!body.name || !body.username || !body.password) return toast("Fill in name, username and password", true);
+      return userAction("POST", body, `User @${body.username} created`);
+    }
+    case "userPass": { const pw = prompt(`New password for @${el.dataset.u} (at least 6 characters):`); if (pw) userAction("PATCH", { username: el.dataset.u, password: pw }, "Password reset — share it with them"); return; }
+    case "userToggle": { const u = S.users.find((x) => x.username === el.dataset.u); return userAction("PATCH", { username: u.username, disabled: !u.disabled }, u.disabled ? "User enabled" : "User disabled — signed out everywhere"); }
+    case "userDelete": if (confirm(`Delete @${el.dataset.u}? Their past changes stay in the Activity Log.`)) userAction("DELETE", { username: el.dataset.u }, "User deleted"); return;
   }
 });
 
@@ -1507,6 +1585,7 @@ setInterval(() => { renderHeader(); renderKpis(); renderLive(); renderTimeline()
 setInterval(() => { if (!S.admin.open) load(true); }, 120000);
 renderAll();
 load();
+checkSession();
 </script>
 </body>
 </html>
