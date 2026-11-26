@@ -276,7 +276,26 @@ input:focus,select:focus{outline:3px solid var(--lav);border-color:var(--brand-3
 .req .tt{font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .req .dd{font-size:12.5px;color:var(--ink-2);margin-top:3px}
 .tp{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;padding:3px 8px}
-.tp.swap{background:var(--plum);color:#fff}.tp.excuse{background:#F7E1E6;color:#9A2D45}.tp.late,.tp.early{background:var(--warn-bg);color:var(--warn)}.tp.dayoff{background:#E3ECF8;color:#2F5A8A}.tp.other{background:var(--line-2);color:var(--muted)}
+.tp.swap{background:var(--plum);color:#fff}.tp.excuse{background:#F7E1E6;color:#9A2D45}.tp.late,.tp.early{background:var(--warn-bg);color:var(--warn)}.tp.dayoff{background:#E3ECF8;color:#2F5A8A}.tp.other{background:var(--line-2);color:var(--muted)}.tp.deduction{background:#7A1F33;color:#fff}
+.rq.ded{background:#FBEAEE;color:#8A1D33;border:1px solid #F0C7D0}
+.ss.ded-approved{background:#FBEAEE;color:#8A1D33}.ss.ded-rejected{background:var(--line-2);color:var(--muted)}
+.ref{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--muted);letter-spacing:.02em}
+.amt{font-family:var(--serif);font-weight:600;font-size:22px;color:#7A1F33;font-variant-numeric:lining-nums;white-space:nowrap}
+.dedsum{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.dedsum .hd{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:linear-gradient(90deg,#2A1E48,#4A367A);color:#fff}
+.dedsum .hd b{font-family:var(--serif);font-size:20px;font-weight:600}
+.dedsum .hd span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
+.dedsum table{width:100%;border-collapse:collapse;font-size:13px}
+.dedsum th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:right;padding:9px 16px;background:var(--lav-3);border-bottom:1px solid var(--line)}
+.dedsum th:first-child,.dedsum td:first-child{text-align:left}
+.dedsum td{padding:9px 16px;border-bottom:1px solid var(--line-2);text-align:right;font-variant-numeric:tabular-nums}
+.dedsum tr.tot td{font-weight:800;background:var(--lav-3)}
+.xcard .xd .rql.ded{color:#8A1D33}
+.xrep .xr{padding:6px 56px 10px}
+.xrep .xr h3{font-family:var(--serif);font-size:30px;font-weight:600;color:var(--plum);margin:10px 0 12px}
+.xrep .xr table{width:100%;border-collapse:collapse;font-size:15px}
+.xrep .xr th{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:2px solid var(--line)}
+.xrep .xr td{padding:11px 12px;border-bottom:1px solid var(--line-2)}
 .ss{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:4px 11px;white-space:nowrap}
 .ss.pending{background:var(--warn-bg);color:var(--warn)}.ss.approved{background:var(--ok-bg);color:var(--ok)}.ss.rejected{background:var(--bad-bg);color:var(--bad)}
 .empty{border:1px dashed var(--line);border-radius:14px;padding:22px;text-align:center;color:var(--muted);font-size:13px}
@@ -404,8 +423,8 @@ input:focus,select:focus{outline:3px solid var(--lav);border-color:var(--brand-3
 
   <section class="card">
     <div class="sh">
-      <div><div class="eyebrow">After the schedule was sent</div><h2>Excuses &amp; Shift Changes</h2><div class="sub" id="reqSub"></div></div>
-      <button class="btn sm admin-only hidden" id="reqAdd">+ Add record</button>
+      <div><div class="eyebrow">After the schedule was sent</div><h2 id="reqTitle">Excuses, Shift Changes &amp; Deductions</h2><div class="sub" id="reqSub"></div></div>
+      <button class="btn sm" id="reqAdd">+ Add record</button>
     </div>
     <div id="reqList"></div>
   </section>
@@ -777,7 +796,7 @@ function weekTableHTML(D, ws, forExport) {
       const i = ws + k;
       h += `<td class="${i === ci && !forExport ? "today" : ""}">`;
       if (!mb.length) h += `<span class="offc">Off</span>`;
-      const rqb = reqsFor(D, m.id, i).map((r) => `<span class="rq ${r.status}" title="${esc(reqTitle(D, r))}${r.details ? " — " + esc(r.details) : ""}">${esc(reqBadge(D, r, m.id))}</span>`).join(" ");
+      const rqb = reqsFor(D, m.id, i).map((r) => `<span class="rq ${r.type === "deduction" ? "ded" : r.status}" title="${esc(reqTitle(D, r))}${r.details ? " — " + esc(r.details) : ""}">${esc(reqBadge(D, r, m.id))}</span>`).join(" ");
       if (rqb) h += `<div>${rqb}</div>`;
       for (const b of mb) {
         const prev = Math.floor(b.s / 1440) < i ? `<small>from ${DY[wdOf(i - 1)]} night</small>` : "";
@@ -843,7 +862,30 @@ function dayText(D, i) {
 }
 
 /* ============================ excuses & swaps ============================ */
-const REQ_TYPES = { swap: "Shift swap", excuse: "Excuse / absence", late: "Late arrival", early: "Early leave", dayoff: "Day-off change", other: "Other" };
+const REQ_TYPES = { swap: "Shift swap", excuse: "Excuse / absence", late: "Late arrival", early: "Early leave", dayoff: "Day-off change", deduction: "Deduction", other: "Other" };
+const DED_REASONS = ["Late arrival", "Absence without notice", "Early leave", "Unauthorized break", "Policy violation", "Performance / quality", "Other"];
+const money = (n) => "EGP " + new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(+n || 0);
+const dayStr = (d) => { d = +d || 0; return `${d} day${d === 1 ? "" : "s"}`; };
+function dedText(r) { const p = []; if (+r.amount) p.push(money(r.amount)); if (+r.days) p.push(dayStr(r.days)); return p.join(" + ") || "—"; }
+function stLabel(r) {
+  if (r.type === "deduction") return { pending: "Pending review", approved: "Applied", rejected: "Waived" }[r.status] || r.status;
+  return { pending: "Pending", approved: "Approved", rejected: "Rejected" }[r.status] || r.status;
+}
+const stClass = (r) => (r.type === "deduction" && r.status !== "pending" ? "ded-" + r.status : r.status);
+function nextDedRef(D) {
+  const n = (D.requests || []).filter((r) => r.ref).map((r) => +String(r.ref).replace(/\D/g, "") || 0);
+  return "DED-" + String((n.length ? Math.max(...n) : 0) + 1).padStart(4, "0");
+}
+function dedTotals(D, from, to) { // inclusive day-index range, non-waived deductions
+  const per = {};
+  for (const r of D.requests || []) {
+    if (r.type !== "deduction" || r.status === "rejected") continue;
+    const i = dIdx(r.date); if (i < from || i > to) continue;
+    const t = per[r.member] || (per[r.member] = { n: 0, amount: 0, days: 0, pending: 0 });
+    t.n++; t.amount += +r.amount || 0; t.days += +r.days || 0; if (r.status === "pending") t.pending++;
+  }
+  return per;
+}
 const memName = (D, id) => (D.members.find((m) => m.id === id) || { name: "(removed)" }).name;
 function reqTitle(D, r) {
   const d = dIdx(r.date);
@@ -854,6 +896,7 @@ function reqTitle(D, r) {
   return `${memName(D, r.member)} · ${DY[wdOf(d)]} ${dmy(d)}`;
 }
 function reqBadge(D, r, mid, long) {
+  if (r.type === "deduction") return long ? `Deduction ${dedText(r)} · ${r.reason || "—"}` : `− ${dedText(r)}`;
   if (r.type === "swap") { const other = r.member === mid ? r.withMember : r.member; return (long ? "Swapped with " : "↔ ") + memName(D, other); }
   return REQ_TYPES[r.type] || r.type;
 }
@@ -877,12 +920,29 @@ function renderRequests() {
   const inWeek = (s) => { if (!s) return false; const i = dIdx(s); return i >= ws && i <= ws + 6; };
   const list = (D.requests || []).filter((r) => inWeek(r.date) || inWeek(r.withDate)).sort((a, b) => a.date.localeCompare(b.date) || (a.createdAt || "").localeCompare(b.createdAt || ""));
   $("#reqSub").textContent = `${dmy(ws)} – ${dmy(ws + 6, 1)} · ${list.length} record${list.length === 1 ? "" : "s"}`;
-  $("#reqList").innerHTML = list.length ? `<div class="reqs">${list.map((r) => {
-    const d = dIdx(r.date);
+  $("#reqTitle").innerHTML = "Excuses, Shift Changes &amp; Deductions";
+  $("#reqList").innerHTML = dedSummaryHTML(D, ws) + (list.length ? `<div class="reqs">${list.map((r) => {
+    const d = dIdx(r.date), ded = r.type === "deduction";
     return `<div class="req"><div class="dt"><b>${new Date(d * 864e5).getUTCDate()}</b><span>${DY[wdOf(d)]} · ${MON[new Date(d * 864e5).getUTCMonth()]}</span></div>
-      <div><div class="tt"><span class="tp ${r.type}">${REQ_TYPES[r.type] || r.type}</span>${esc(reqTitle(D, r))}${r.type === "swap" && r.applied ? ` <span class="chip-s pub">Applied to schedule</span>` : ""}</div>${r.details ? `<div class="dd">${esc(r.details)}</div>` : ""}</div>
-      <div class="st2"><span class="ss ${r.status}">${r.status}</span></div></div>`;
-  }).join("")}</div>` : `<div class="empty">No excuses or shift changes for this week.</div>`;
+      <div><div class="tt"><span class="tp ${r.type}">${REQ_TYPES[r.type] || r.type}</span>${esc(reqTitle(D, r))}${ded ? `<span class="ref">${esc(r.ref || "")}</span>` : ""}${r.type === "swap" && r.applied ? ` <span class="chip-s pub">Applied to schedule</span>` : ""}</div>
+        ${ded ? `<div class="dd"><b>Reason:</b> ${esc(r.reason || "—")}${r.details ? " — " + esc(r.details) : ""}</div>` : r.details ? `<div class="dd">${esc(r.details)}</div>` : ""}</div>
+      <div class="st2 row" style="gap:14px">${ded ? `<span class="amt">${esc(dedText(r))}</span>` : ""}<span class="ss ${stClass(r)}">${stLabel(r)}</span></div></div>`;
+  }).join("")}</div>` : `<div class="empty">No excuses, shift changes or deductions for this week.</div>`);
+}
+
+function monthRange(i) { const d = new Date(i * 864e5), y = d.getUTCFullYear(), m = d.getUTCMonth(); return [Math.round(Date.UTC(y, m, 1) / 864e5), Math.round(Date.UTC(y, m + 1, 0) / 864e5), MON[m] + " " + y]; }
+function dedSummaryHTML(D, ws, forExport) {
+  const wk = dedTotals(D, ws, ws + 6), [m0, m1, mName] = monthRange(ws + 3), mo = dedTotals(D, m0, m1);
+  const ids = [...new Set([...Object.keys(wk), ...Object.keys(mo)])];
+  if (!ids.length) return "";
+  const z = { n: 0, amount: 0, days: 0, pending: 0 };
+  const sum = (o) => Object.values(o).reduce((a, t) => ({ n: a.n + t.n, amount: a.amount + t.amount, days: a.days + t.days }), { n: 0, amount: 0, days: 0 });
+  const W = sum(wk), M = sum(mo);
+  const cell = (t) => `${t.amount ? money(t.amount) : "—"}</td><td>${t.days ? dayStr(t.days) : "—"}`;
+  return `<div class="dedsum"><div class="hd"><div><span>Deductions summary</span><br><b>This week ${esc(money(W.amount))}${W.days ? " + " + dayStr(W.days) : ""}</b></div><div style="text-align:right"><span>${mName} to date</span><br><b>${esc(money(M.amount))}${M.days ? " + " + dayStr(M.days) : ""}</b></div></div>
+    <table><thead><tr><th>Team member</th><th>Week · EGP</th><th>Week · days</th><th>${mName} · EGP</th><th>${mName} · days</th><th>Records (month)</th></tr></thead><tbody>
+    ${ids.map((id) => { const w = wk[id] || z, m = mo[id] || z; return `<tr><td><b>${esc(memName(D, id))}</b></td><td>${cell(w)}</td><td>${cell(m)}</td><td>${m.n}${m.pending ? ` <span class="ref">(${m.pending} pending)</span>` : ""}</td></tr>`; }).join("")}
+    <tr class="tot"><td>Total</td><td>${cell(W)}</td><td>${cell(M)}</td><td>${M.n}</td></tr></tbody></table></div>`;
 }
 
 /* ============================ activity log ============================ */
@@ -948,11 +1008,12 @@ function diffData(A, B) {
     }
   }
   // requests
-  const rn = (r) => `${REQ_TYPES[r.type] || r.type} — ${reqTitle(B, r)}`;
+  const rn = (r) => `${REQ_TYPES[r.type] || r.type}${r.ref ? " " + r.ref : ""} — ${reqTitle(B, r)}${r.type === "deduction" ? ` · ${dedText(r)} · ${r.reason || ""}` : ""}`;
   for (const r of B.requests || []) {
     const o = (A.requests || []).find((x) => x.id === r.id);
-    if (!o) { out.push(`Excuses & swaps: logged ${rn(r)} (${r.status})${r.details ? " — " + r.details : ""}`); if (r.applied) out.push(`Excuses & swaps: applied swap to the schedule — ${reqTitle(B, r)}`); continue; }
-    if (o.status !== r.status) out.push(`Excuses & swaps: ${rn(r)} — status ${o.status} → ${r.status}`);
+    if (!o) { out.push(`Excuses & swaps: logged ${rn(r)} (${stLabel(r)})${r.details ? " — " + r.details : ""}`); if (r.applied) out.push(`Excuses & swaps: applied swap to the schedule — ${reqTitle(B, r)}`); continue; }
+    if (o.status !== r.status) out.push(`Excuses & swaps: ${rn(r)} — status ${stLabel(o)} → ${stLabel(r)}`);
+    if (r.type === "deduction" && (+o.amount !== +r.amount || +o.days !== +r.days || o.reason !== r.reason)) out.push(`Excuses & swaps: deduction ${r.ref || ""} changed ${dedText(o)} (${o.reason || "—"}) → ${dedText(r)} (${r.reason || "—"})`);
     if ((o.details || "") !== (r.details || "")) out.push(`Excuses & swaps: updated details — ${rn(r)}`);
     if (!o.applied && r.applied) out.push(`Excuses & swaps: applied swap to the schedule — ${reqTitle(B, r)}`);
   }
@@ -972,7 +1033,7 @@ function cardHTML(D, m, ws) {
   const rows = p.days.map((mb, k) => {
     const i = ws + k;
     const dn = `<div class="dn">${DAYS[wdOf(i)]}<small>${dmy(i)}</small></div>`;
-    const rql = reqsFor(D, m.id, i).map((r) => `<div class="rql">${esc(reqBadge(D, r, m.id, true))}${r.status === "pending" ? " · pending" : ""}</div>`).join("");
+    const rql = reqsFor(D, m.id, i).map((r) => `<div class="rql ${r.type === "deduction" ? "ded" : ""}">${esc(reqBadge(D, r, m.id, true))}${r.status === "pending" ? " · pending" : ""}</div>`).join("");
     if (!mb.length) return `<div class="xd off">${dn}<div class="sl"><div class="tm">Day off</div>${rql}</div></div>`;
     return `<div class="xd ${i === ci ? "today" : ""}">${dn}<div class="sl">${rql}${mb.map((b) =>
       `<div class="tm">${fmtT(b.s)} – ${fmtT(b.e)}${b.extra ? `<span class="tg">Extra</span>` : ""}</div>` +
@@ -983,7 +1044,7 @@ function cardHTML(D, m, ws) {
     <div class="xline"></div>
     <div class="xwho"><div class="xav">${esc(initials(m.name))}</div><div><div class="xname">${esc(m.name)}</div><div class="xrole">${esc(m.role || "")}</div></div></div>
     <div class="xpanel">${rows}</div>
-    <div class="xstats"><div class="xs"><b>${hrs(p.work)}</b><span>Working hours</span></div><div class="xs"><b>${p.shifts}</b><span>Shifts</span></div><div class="xs"><b>${p.off}</b><span>Days off</span></div>${p.extra ? `<div class="xs"><b>${p.extra}</b><span>Extra</span></div>` : ""}</div>
+    <div class="xstats"><div class="xs"><b>${hrs(p.work)}</b><span>Working hours</span></div><div class="xs"><b>${p.shifts}</b><span>Shifts</span></div><div class="xs"><b>${p.off}</b><span>Days off</span></div>${p.extra ? `<div class="xs"><b>${p.extra}</b><span>Extra</span></div>` : ""}${(() => { const t = dedTotals(D, ws, ws + 6)[m.id]; return t ? `<div class="xs"><b style="font-size:34px">${esc(dedText(t))}</b><span>Deductions</span></div>` : ""; })()}</div>
     <div class="xfoot"><span>Fémini · Team Operations</span><span>All times Cairo · Issued ${dmy(cairoNow().idx, 1)}</span></div></div>`;
 }
 function reportHTML(D, ws) {
@@ -993,6 +1054,14 @@ function reportHTML(D, ws) {
       <div class="r"><b>${dmy(ws)} – ${dmy(ws + 6, 1)}</b>${created ? "Published schedule" : "Default template"} · Cairo time</div></div>
     <div class="xk"><div><span>Team members</span><b>${st.mem.length}</b></div><div><span>Total working hours</span><b>${hrs(st.total)}</b></div><div><span>Days off</span><b>${st.off}</b></div><div><span>Extra shifts</span><b>${st.extra}</b></div><div><span>Coverage</span><b style="color:${st.gaps ? "var(--bad)" : "var(--ok)"}">${st.gaps ? st.gaps + " gaps" : "24/7"}</b></div></div>
     <div class="xt"><table class="wk">${weekTableHTML(D, ws, true)}</table></div>
+    ${(() => {
+      const L = (D.requests || []).filter((r) => { const i = dIdx(r.date), j = r.withDate ? dIdx(r.withDate) : -1; return (i >= ws && i <= ws + 6) || (j >= ws && j <= ws + 6); }).sort((a, b) => a.date.localeCompare(b.date));
+      if (!L.length) return "";
+      return `<div class="xr"><h3>Excuses, Shift Changes &amp; Deductions</h3>${dedSummaryHTML(D, ws, true)}<table><thead><tr><th>Date</th><th>Type</th><th>Team member</th><th>Details</th><th>Amount</th><th>Status</th></tr></thead><tbody>${L.map((r) => {
+        const d = dIdx(r.date);
+        return `<tr><td>${DY[wdOf(d)]} ${dmy(d)}</td><td><span class="tp ${r.type}">${REQ_TYPES[r.type] || r.type}</span>${r.ref ? ` <span class="ref">${esc(r.ref)}</span>` : ""}</td><td><b>${esc(r.type === "swap" ? memName(D, r.member) + " ↔ " + memName(D, r.withMember) : memName(D, r.member))}</b></td><td>${esc(r.type === "deduction" ? (r.reason || "") + (r.details ? " — " + r.details : "") : r.details || "")}</td><td>${r.type === "deduction" ? `<b style="color:#7A1F33">${esc(dedText(r))}</b>` : "—"}</td><td><span class="ss ${stClass(r)}">${stLabel(r)}</span></td></tr>`;
+      }).join("")}</tbody></table></div>`;
+    })()}
     <div class="xf"><span>Each schedule day starts at ${fmtT(hm(D.settings.dayStart))}${dayOff(D) < 0 ? " the evening before" : ""}. Breaks are flexible within each shift; hours exclude breaks.</span><span>Issued ${dmy(cairoNow().idx, 1)} · Fémini</span></div></div>`;
 }
 async function exportImage(html, filename, share) {
@@ -1133,22 +1202,25 @@ function renderAdmin() {
     });
     body += `<button class="btn sm" data-act="addRule">+ Add rule</button>`;
   } else if (A.tab === "requests") {
-    const f = A.rq || (A.rq = { type: "swap", date: iDate(curIdx()), member: D.members[0]?.id, withMember: D.members[1]?.id, withDate: "", details: "", status: "approved" });
+    const f = A.rq || (A.rq = { type: "swap", date: iDate(curIdx()), member: D.members[0]?.id, withMember: D.members[1]?.id, withDate: "", details: "", status: "approved", amount: "", days: "", reason: DED_REASONS[0] });
     const mopts = (sel) => D.members.map((m) => `<option value="${esc(m.id)}" ${m.id === sel ? "selected" : ""}>${esc(m.name)}</option>`).join("");
     body += `<div class="panel"><h4>New record</h4><div class="rqform">
       <label class="field">Type<select id="rqType">${Object.entries(REQ_TYPES).map(([k, v]) => `<option value="${k}" ${k === f.type ? "selected" : ""}>${v}</option>`).join("")}</select></label>
       <label class="field">Date<input type="date" id="rqDate" value="${esc(f.date)}"></label>
       <label class="field">Team member<select id="rqMember">${mopts(f.member)}</select></label>
-      <label class="field">Status<select id="rqStatus">${["pending", "approved", "rejected"].map((x) => `<option value="${x}" ${x === f.status ? "selected" : ""}>${x[0].toUpperCase() + x.slice(1)}</option>`).join("")}</select></label>
+      <label class="field">Status<select id="rqStatus">${["pending", "approved", "rejected"].map((x) => `<option value="${x}" ${x === f.status ? "selected" : ""}>${stLabel({ type: f.type, status: x })}</option>`).join("")}</select></label>
       ${f.type === "swap" ? `<label class="field">Swap with<select id="rqWith">${mopts(f.withMember)}</select></label>
       <label class="field">Their shift date (if different)<input type="date" id="rqWithDate" value="${esc(f.withDate)}"></label>` : ""}
-      <label class="field ${f.type === "swap" ? "wide" : "wide"}">Details<input type="text" id="rqDetails" value="${esc(f.details)}" placeholder="${f.type === "swap" ? "e.g. Rawan asked to swap her evening shift with Menna" : "e.g. Family emergency — leaving at 1 PM"}"></label>
+      ${f.type === "deduction" ? `<label class="field">Reason<select id="rqReason">${DED_REASONS.map((x) => `<option ${x === f.reason ? "selected" : ""}>${x}</option>`).join("")}</select></label>
+      <label class="field">Amount (EGP)<input type="number" min="0" step="5" id="rqAmount" value="${esc(f.amount)}" placeholder="0"></label>
+      <label class="field">Days deducted<input type="number" min="0" step="0.25" id="rqDays" value="${esc(f.days)}" placeholder="0"></label>` : ""}
+      <label class="field wide">Details<input type="text" id="rqDetails" value="${esc(f.details)}" placeholder="${f.type === "swap" ? "e.g. Rawan asked to swap her evening shift with Menna" : f.type === "deduction" ? "e.g. Arrived 45 min late without notice" : "e.g. Family emergency — leaving at 1 PM"}"></label>
     </div><div class="row" style="justify-content:flex-end;margin-top:12px">${f.type === "swap" ? `<label class="row" style="gap:6px;font-size:12.5px"><input type="checkbox" id="rqApply" checked> Apply the swap to the schedule</label>` : ""}<button class="btn primary" data-act="reqCreate">Add record</button></div></div>`;
     const list = D.requests.map((r, k) => ({ r, k })).sort((a, b) => (b.r.date + b.r.createdAt).localeCompare(a.r.date + a.r.createdAt));
     body += `<div class="panel"><h4>All records (${list.length})</h4>` + (list.length ? list.map(({ r, k }) => `<div class="rqrow">
       <div><span class="tp ${r.type}">${REQ_TYPES[r.type] || r.type}</span><div style="font-size:12px;color:var(--muted);margin-top:4px">${DY[wdOf(dIdx(r.date))]} ${dmy(dIdx(r.date), 1)}</div></div>
-      <div><b style="font-size:13px">${esc(reqTitle(D, r))}</b><input type="text" data-path="requests.${k}.details" value="${esc(r.details || "")}" placeholder="Details" style="width:100%;margin-top:4px"></div>
-      <select data-path="requests.${k}.status">${["pending", "approved", "rejected"].map((x) => `<option value="${x}" ${x === r.status ? "selected" : ""}>${x[0].toUpperCase() + x.slice(1)}</option>`).join("")}</select>
+      <div><b style="font-size:13px">${esc(reqTitle(D, r))}</b>${r.type === "deduction" ? ` <span class="ref">${esc(r.ref || "")}</span><div class="row" style="gap:6px;margin-top:4px"><select data-path="requests.${k}.reason">${DED_REASONS.map((x) => `<option ${x === r.reason ? "selected" : ""}>${x}</option>`).join("")}</select><input type="number" min="0" step="5" style="width:96px" data-path="requests.${k}.amount" value="${esc(r.amount || 0)}"> EGP <input type="number" min="0" step="0.25" style="width:72px" data-path="requests.${k}.days" value="${esc(r.days || 0)}"> days</div>` : ""}<input type="text" data-path="requests.${k}.details" value="${esc(r.details || "")}" placeholder="Details" style="width:100%;margin-top:4px"></div>
+      <select data-path="requests.${k}.status">${["pending", "approved", "rejected"].map((x) => `<option value="${x}" ${x === r.status ? "selected" : ""}>${stLabel({ type: r.type, status: x })}</option>`).join("")}</select>
       <div class="row" style="justify-content:flex-end">${r.type === "swap" ? (r.applied ? `<span class="chip-s pub">✓ Applied</span>` : `<button class="btn sm" data-act="reqApply" data-i="${k}">Apply swap</button>`) : ""}<button class="btn sm danger" data-act="delItem" data-path="requests" data-i="${k}">Delete</button></div></div>`).join("") : `<div class="muted">No records yet.</div>`) + `</div>`;
   } else if (A.tab === "settings") {
     body += `<div class="row" style="gap:20px;align-items:end">
@@ -1168,9 +1240,9 @@ function renderAdmin() {
   if (nd) { const upd = () => { if (!nd.value) return; const ws = wkStart(D, dIdx(nd.value)); $("#newDateInfo").innerHTML = `Week: <b>${dmy(ws)} – ${dmy(ws + 6, 1)}</b>${D.weeks[iDate(ws)] ? ' <span class="chip-s pub">already created — will open it</span>' : ""}`; A.newDate = nd.value; }; nd.oninput = upd; upd(); }
   document.querySelectorAll("input[name=src]").forEach((r) => (r.onchange = () => (A.newSrc = r.value)));
   if ($("#rqType")) {
-    const keep = () => { const f = A.rq; f.type = $("#rqType").value; f.date = $("#rqDate").value; f.member = $("#rqMember").value; f.status = $("#rqStatus").value; f.details = $("#rqDetails").value; if ($("#rqWith")) { f.withMember = $("#rqWith").value; f.withDate = $("#rqWithDate").value; } };
-    ["#rqDate", "#rqMember", "#rqStatus", "#rqDetails", "#rqWith", "#rqWithDate"].forEach((q) => { const el = $(q); if (el) el.addEventListener("input", keep); });
-    $("#rqType").onchange = () => { keep(); renderAdmin(); };
+    const keep = () => { const f = A.rq; f.type = $("#rqType").value; f.date = $("#rqDate").value; f.member = $("#rqMember").value; f.status = $("#rqStatus").value; f.details = $("#rqDetails").value; if ($("#rqWith")) { f.withMember = $("#rqWith").value; f.withDate = $("#rqWithDate").value; } if ($("#rqAmount")) { f.amount = $("#rqAmount").value; f.days = $("#rqDays").value; f.reason = $("#rqReason").value; } };
+    ["#rqDate", "#rqMember", "#rqStatus", "#rqDetails", "#rqWith", "#rqWithDate", "#rqAmount", "#rqDays", "#rqReason"].forEach((q) => { const el = $(q); if (el) el.addEventListener("input", keep); });
+    $("#rqType").onchange = () => { keep(); if (A.rq.type === "deduction" && A.rq.status === "approved") A.rq.status = "pending"; renderAdmin(); };
   }
   const f = $("#importFile");
   if (f) f.onchange = async () => {
@@ -1282,6 +1354,11 @@ document.addEventListener("click", async (e) => {
       if (f.type === "swap" && f.member === f.withMember) return toast("Pick two different people for a swap", true);
       const r = { id: "r" + Date.now().toString(36), type: f.type, date: f.date, member: f.member, details: f.details.trim(), status: f.status, createdAt: new Date().toISOString() };
       if (f.type === "swap") { r.withMember = f.withMember; if (f.withDate && f.withDate !== f.date) r.withDate = f.withDate; }
+      if (f.type === "deduction") {
+        r.amount = Math.max(0, +f.amount || 0); r.days = Math.max(0, +f.days || 0); r.reason = f.reason;
+        if (!r.amount && !r.days) return toast("Enter an amount in EGP, days, or both", true);
+        r.ref = nextDedRef(D);
+      }
       D.requests.push(r);
       if (f.type === "swap" && $("#rqApply")?.checked) { const ok = applySwap(D, r); toast(ok ? "Swap applied to the schedule" : "Record added — no matching shifts to swap on that date", !ok); }
       S.admin.rq = null; return R();
