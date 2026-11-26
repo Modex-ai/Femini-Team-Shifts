@@ -386,7 +386,7 @@ input:focus,select:focus{outline:3px solid var(--lav);border-color:var(--brand-3
         <button class="btn sm" id="wkPrev">‹ Prev</button>
         <select id="wkSelect" style="padding:5px 8px;font-size:12px"></select>
         <button class="btn sm" id="wkNext">Next ›</button>
-        <button class="btn sm admin-only hidden" id="wkEdit">Edit week</button>
+        <button class="btn sm" id="wkEdit">Edit this week</button>
         <button class="btn sm primary" id="wkExport"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Save report image</button>
       </div>
     </div>
@@ -444,7 +444,7 @@ const NORMAL = [
 const DEFAULT_DATA = {
   version: 2,
   updatedAt: null,
-  settings: { dayStart: "23:00", weekStart: 0, breakBuffer: 60 },
+  settings: { dayStart: "23:00", weekStart: 0, breakBuffer: 60, startDate: "2026-11-22" },
   members: [
     { id: "sherine", name: "Sherine", role: "Morning Shift", color: "#6A55A8" },
     { id: "rawan", name: "Rawan", role: "Evening Shift · with Menna", color: "#B0578D" },
@@ -551,17 +551,13 @@ function resolveBlock(D, b, i) {
 }
 function weekMembers(D, ws) {
   const w = D.weeks[iDate(ws)];
-  if (!w) { // template weeks: people who have a shift in the template (everyone if the template is empty)
-    const ids = new Set(Object.values(D.template).flat().map((b) => b.member));
-    const m = D.members.filter((x) => ids.has(x.id));
-    return m.length ? m : D.members;
-  }
+  if (!w) return []; // weeks only exist once they are created
   return w.memberIds.map((id) => D.members.find((m) => m.id === id)).filter(Boolean);
 }
 function rawDay(D, i) {
   const ws = wkStart(D, i), w = D.weeks[iDate(ws)];
   if (w) { const d = w.days[i - ws] || { blocks: [], note: "" }; return { blocks: d.blocks || [], note: d.note || "", created: true }; }
-  return { blocks: D.template[wdOf(i)] || [], note: "", created: false };
+  return { blocks: [], note: "", created: false };
 }
 function blocksFor(D, i) {
   const ids = new Set(weekMembers(D, wkStart(D, i)).map((m) => m.id));
@@ -610,7 +606,7 @@ const S = {
   pin: sessionStorage.getItem("fs_pin") || "",
   serverOK: false, fresh: false,
   tlDay: null, weekOffset: 0,
-  admin: { open: false, tab: "week", day: 0, wd: 0, newDate: "", newSrc: "template" },
+  admin: { open: false, tab: "week", day: 0, wd: 0, newDate: "", newSrc: "prev" },
 };
 const V = () => S.draft || S.data;
 const dirty = () => S.draft && JSON.stringify(S.draft) !== JSON.stringify(S.data);
@@ -625,6 +621,12 @@ function normalize(d) {
   const fixBlocks = (l) => (l || []).forEach((b) => { if (Array.isArray(b.breaks)) b.breaks = b.breaks.map((y) => ({ min: +y.min || 0 })); });
   Object.values(x.template || {}).forEach(fixBlocks);
   for (const w of Object.values(x.weeks)) { w.memberIds = w.memberIds || []; w.days = w.days || {}; for (let k = 0; k < 7; k++) { w.days[k] = w.days[k] || { blocks: [], note: "" }; fixBlocks(w.days[k].blocks); } }
+  // the schedule starts at settings.startDate: drop earlier weeks, make sure the first week exists
+  if (x.settings.startDate) {
+    const sk = iDate(wkStart(x, dIdx(x.settings.startDate)));
+    for (const k of Object.keys(x.weeks)) if (k < sk) delete x.weeks[k];
+    if (!x.weeks[sk]) x.weeks[sk] = buildWeek(x, dIdx(sk), "template");
+  }
   x.requests = Array.isArray(x.requests) ? x.requests : [];
   x.log = Array.isArray(x.log) ? x.log : [];
   x.version = 2;
@@ -633,6 +635,8 @@ function normalize(d) {
 S.data = normalize(DEFAULT_DATA);
 const curIdx = () => opIdxOf(V(), cairoNow().abs);
 const viewWS = () => wkStart(V(), curIdx()) + S.weekOffset * 7;
+const minOffset = () => { const D = V(); return D.settings.startDate ? Math.min(0, (wkStart(D, dIdx(D.settings.startDate)) - wkStart(D, curIdx())) / 7) : -999; };
+const setOffset = (o) => { S.weekOffset = Math.max(minOffset(), o); };
 
 /* ============================ API ============================ */
 async function load(silent) {
@@ -742,7 +746,7 @@ function renderTimeline() {
   $("#tlCov").innerHTML = covBadge(D, i, blocks);
   $("#tlNote").innerHTML = day.note ? `<div class="note"><b>Note:</b> ${esc(day.note)}</div>` : "";
   const pos = (x) => (((x - a) / 1440) * 100).toFixed(3) + "%";
-  let h = "";
+  let h = mem.length ? "" : `<div class="empty">No schedule for this day — the week hasn't been created yet.</div>`;
   const offs = [];
   for (const m of mem) {
     const mb = blocks.filter((b) => b.member === m.id);
@@ -792,16 +796,19 @@ function renderWeek() {
   const D = V(), ws = viewWS(), created = !!D.weeks[iDate(ws)];
   $("#wkTitle").textContent = `${dmy(ws)} – ${dmy(ws + 6, 1)}`;
   $("#wkSub").innerHTML = (S.weekOffset === 0 ? "This week · " : S.weekOffset === 1 ? "Next week · " : S.weekOffset === -1 ? "Last week · " : "") +
-    (created ? `<span class="chip-s pub">● Published week</span>` : `<span class="chip-s tpl">Default template</span>`);
-  $("#wkTbl").innerHTML = weekTableHTML(D, ws);
+    (created ? `<span class="chip-s pub">● Published week</span>` : `<span class="chip-s tpl">Not created yet</span>`);
+  $("#wkTbl").innerHTML = created ? weekTableHTML(D, ws) : `<tbody><tr><td style="border:none;padding:0"><div class="empty">This week hasn't been created yet.<br><button class="btn sm primary" style="margin-top:10px" data-act="openCreate">Create this week</button></div></td></tr></tbody>`;
+  $("#wkPrev").disabled = S.weekOffset <= minOffset();
+  $("#wkExport").disabled = !created;
   $("#wkFoot").textContent = `Each schedule day starts at ${fmtT(hm(D.settings.dayStart))}${dayOff(D) < 0 ? " the evening before" : ""}, so night shifts count toward the morning they end. Breaks are flexible — taken anytime except the first and last ${fmtDur(+(D.settings.breakBuffer ?? 60))} of the shift. Hours exclude set break allowances.`;
   // week select: created weeks + current view
-  const keys = new Set(Object.keys(D.weeks)); keys.add(iDate(ws)); keys.add(iDate(wkStart(D, curIdx())));
-  $("#wkSelect").innerHTML = [...keys].sort().map((k) => { const i = dIdx(k); return `<option value="${k}" ${i === ws ? "selected" : ""}>${dmy(i)} – ${dmy(i + 6)}${D.weeks[k] ? "" : " (template)"}</option>`; }).join("");
-  $("#wkEdit").textContent = created ? "Edit week" : "Create & edit week";
+  const keys = new Set(Object.keys(D.weeks)); keys.add(iDate(ws)); keys.add(iDate(wkStart(D, curIdx()))); keys.add(iDate(wkStart(D, curIdx()) + 7));
+  $("#wkSelect").innerHTML = [...keys].sort().map((k) => { const i = dIdx(k); return `<option value="${k}" ${i === ws ? "selected" : ""}>${dmy(i)} – ${dmy(i + 6)}${D.weeks[k] ? "" : " (not created)"}</option>`; }).join("");
+  $("#wkEdit").textContent = created ? (S.weekOffset === 0 ? "Edit this week" : "Edit week") : "Create this week";
 }
 function renderPeople() {
   const D = V(), ws = viewWS(), st = weekStats(D, ws), ci = curIdx();
+  if (!st.mem.length) { $("#people").innerHTML = `<div class="empty" style="grid-column:1/-1">No schedule for this week yet.</div>`; return; }
   $("#people").innerHTML = st.mem.map((m) => {
     const p = st.per[m.id];
     const rows = p.days.map((mb, k) => {
@@ -925,8 +932,8 @@ function diffData(A, B) {
   const keys = new Set([...Object.keys(A.weeks || {}), ...Object.keys(B.weeks || {})]);
   for (const k of [...keys].sort()) {
     const a = A.weeks[k], b = B.weeks[k], W = wkName(k);
-    if (!a) { out.push(`${W}: created week`); }
-    if (!b) { out.push(`${W}: deleted week (back to default template)`); continue; }
+    if (!b) { out.push(`${W}: deleted week`); continue; }
+    if (!a) { const n = Object.values(b.days).reduce((t, d) => t + d.blocks.length, 0); out.push(`${W}: created week — ${b.memberIds.length} people, ${n} shifts`); continue; }
     const am = a ? a.memberIds : [];
     if (a) {
       b.memberIds.filter((id) => !am.includes(id)).forEach((id) => out.push(`${W}: added ${nm(id)} to the week`));
@@ -1068,8 +1075,10 @@ function renderAdmin() {
     body += `<div class="row" style="justify-content:space-between;margin-bottom:14px"><div><div class="eyebrow" style="color:var(--brand-2)">Editing week</div><div class="serif" style="font-size:26px;font-weight:600;color:var(--plum)">${dmy(ws)} – ${dmy(ws + 6, 1)}</div></div>
       <div class="row"><button class="btn sm" data-act="wkShift" data-i="-1">‹ Prev week</button><button class="btn sm" data-act="wkShift" data-i="1">Next week ›</button></div></div>`;
     if (!w) {
-      body += `<div class="panel"><h4>Not created yet</h4><p class="muted" style="margin:0 0 12px">This week currently follows the default template. Create it to edit days, add people or extra shifts for this week only.</p>
-        <div class="row"><button class="btn primary" data-act="createWeek" data-src="template">Create from default template</button><button class="btn" data-act="createWeek" data-src="prev">Copy previous week</button><button class="btn" data-act="createWeek" data-src="empty">Start empty</button></div></div>`;
+      body += viewWS() < (D.settings.startDate ? wkStart(D, dIdx(D.settings.startDate)) : -1e9)
+        ? `<div class="panel"><h4>Before the schedule start</h4><p class="muted" style="margin:0">The schedule starts on ${dmy(dIdx(D.settings.startDate), 1)}.</p></div>`
+        : `<div class="panel"><h4>Not created yet</h4><p class="muted" style="margin:0 0 12px">Build this week yourself — start from last week, the default template, or an empty week. Then edit every day, people and extra shifts.</p>
+        <div class="row"><button class="btn primary" data-act="createWeek" data-src="prev">Copy previous week</button><button class="btn" data-act="createWeek" data-src="template">Use default template</button><button class="btn" data-act="createWeek" data-src="empty">Start empty</button></div></div>`;
     } else {
       const wm = weekMembers(D, ws), others = D.members.filter((m) => !w.memberIds.includes(m.id));
       body += `<div class="panel"><h4>People this week</h4><div class="row">${wm.map((m) => `<span class="chip mchip" style="--c:${esc(m.color)}"><span class="dot"></span>${esc(m.name)}<button title="Remove from this week" data-act="weekRemove" data-id="${esc(m.id)}">✕</button></span>`).join("")}</div>
@@ -1092,8 +1101,8 @@ function renderAdmin() {
     body += `<div class="panel"><h4>Week</h4><label class="field" style="max-width:240px">Any day in the week<input type="date" id="newDate" value="${esc(def)}"></label>
       <div class="muted" style="margin-top:8px;font-size:12.5px" id="newDateInfo"></div></div>
       <div class="panel"><h4>Start from</h4>
-        <label class="opt"><input type="radio" name="src" value="template" ${A.newSrc === "template" ? "checked" : ""}><div><b>Default template</b><span>The fixed weekly pattern — edit anything after.</span></div></label>
         <label class="opt"><input type="radio" name="src" value="prev" ${A.newSrc === "prev" ? "checked" : ""}><div><b>Copy of the previous week</b><span>Same people, shifts and extras as the week before.</span></div></label>
+        <label class="opt"><input type="radio" name="src" value="template" ${A.newSrc === "template" ? "checked" : ""}><div><b>Default template</b><span>The fixed weekly pattern — edit anything after.</span></div></label>
         ${created.length ? `<label class="opt"><input type="radio" name="src" value="pick" ${A.newSrc === "pick" ? "checked" : ""}><div><b>Copy of a specific week</b><span><select id="pickWeek">${created.map((k) => `<option value="${k}">${dmy(dIdx(k))} – ${dmy(dIdx(k) + 6, 1)}</option>`).join("")}</select></span></div></label>` : ""}
         <label class="opt"><input type="radio" name="src" value="empty" ${A.newSrc === "empty" ? "checked" : ""}><div><b>Empty week</b><span>Current team, no shifts — build it from scratch.</span></div></label></div>
       <div class="row" style="justify-content:flex-end"><button class="btn primary" data-act="newWeekGo">Create week & open editor</button></div>`;
@@ -1108,8 +1117,8 @@ function renderAdmin() {
     body += `<button class="btn sm" data-act="addMember">+ Add team member</button>`;
   } else if (A.tab === "template") {
     const wd = A.wd, cur = curIdx(), i = cur + ((wd - wdOf(cur) + 7) % 7);
-    const fake = clone(D); delete fake.weeks[iDate(wkStart(D, i))];
-    body += `<p class="muted" style="margin-top:0">The fixed pattern used for any week that hasn't been created, and as the starting point for new weeks.</p>
+    const fake = clone(D); fake.weeks = {}; fake.weeks[iDate(wkStart(D, i))] = buildWeek(D, wkStart(D, i), "template");
+    body += `<p class="muted" style="margin-top:0">A reusable weekly pattern. It is only used when you choose it while creating a new week — it never fills weeks on its own.</p>
       <div class="chips">${DAYS.map((d, k) => `<button class="chip ${k === wd ? "active" : ""}" data-act="wd" data-i="${k}">${d}</button>`).join("")}</div>
       <div class="panel"><div class="row" style="justify-content:space-between;margin-bottom:12px"><h4 style="margin:0">Every ${DAYS[wd]}</h4>${covBadge(fake, i)}</div>
       ${blocksEditor(fake, D.template[wd], `template.${wd}`, i, D.members)}
@@ -1144,6 +1153,7 @@ function renderAdmin() {
   } else if (A.tab === "settings") {
     body += `<div class="row" style="gap:20px;align-items:end">
       <label class="field">Schedule day starts at<input type="time" step="900" data-path="settings.dayStart" value="${esc(D.settings.dayStart)}"></label>
+      <label class="field">Schedule starts<input type="date" data-path="settings.startDate" value="${esc(D.settings.startDate || "")}"></label>
       <label class="field">Week starts on<select data-path="settings.weekStart" data-num="1">${DAYS.map((d, k) => `<option value="${k}" ${+D.settings.weekStart === k ? "selected" : ""}>${d}</option>`).join("")}</select></label></div>
       <p class="muted" style="font-size:12.5px">With 11:00 PM, the night shift (11 PM – 7 AM) belongs to the day it ends. Changing the week start after creating weeks will make those weeks fall back to the template.</p>
       <div class="panel"><h4>Backup</h4><div class="row"><button class="btn sm" data-act="export">Download backup (JSON)</button><label class="btn sm">Restore from file<input type="file" accept="application/json" id="importFile" class="hidden"></label><button class="btn sm danger" data-act="logout" style="margin-left:auto">Sign out of Manage</button></div></div>`;
@@ -1175,7 +1185,7 @@ function buildWeek(D, ws, src, pickKey) {
   if (src === "prev" || src === "pick") {
     const key = src === "pick" ? pickKey : iDate(ws - 7), from = D.weeks[key];
     if (from) return { memberIds: [...from.memberIds], days: clone(from.days), createdAt: new Date().toISOString() };
-    for (let k = 0; k < 7; k++) { const i = ws - 7 + k; days[k].blocks = clone(rawDay(D, i).blocks); }
+    for (let k = 0; k < 7; k++) days[k].blocks = clone(D.template[wdOf(ws + k)] || []); // no previous week: fall back to the template
   }
   return { memberIds, days, createdAt: new Date().toISOString() };
 }
@@ -1213,7 +1223,7 @@ document.addEventListener("click", async (e) => {
     case "tab": S.admin.tab = el.dataset.tab; return R();
     case "wd": S.admin.wd = i; return R();
     case "day": S.admin.day = i; return R();
-    case "wkShift": S.weekOffset += i; return R();
+    case "wkShift": setOffset(S.weekOffset + i); return R();
     case "cardSave": case "cardShare":
       try { await saveCard(el.dataset.id, act === "cardShare"); } catch (err) { toast("Couldn't create the image: " + err.message, true); }
       return;
@@ -1230,6 +1240,7 @@ document.addEventListener("click", async (e) => {
     case "newWeekGo": {
       const d = $("#newDate").value; if (!d) return toast("Pick a date", true);
       const ws = wkStart(D, dIdx(d)), key = iDate(ws);
+      if (D.settings.startDate && ws < wkStart(D, dIdx(D.settings.startDate))) return toast("That week is before the schedule start (" + dmy(dIdx(D.settings.startDate), 1) + ")", true);
       if (!D.weeks[key]) D.weeks[key] = buildWeek(D, ws, S.admin.newSrc, $("#pickWeek")?.value);
       S.weekOffset = (ws - wkStart(D, curIdx())) / 7; S.admin.tab = "week"; S.admin.day = 0; S.admin.newDate = "";
       toast("Week created — edit it, then save"); return R();
@@ -1276,6 +1287,7 @@ document.addEventListener("click", async (e) => {
       S.admin.rq = null; return R();
     }
     case "reqApply": { const ok = applySwap(D, D.requests[i]); toast(ok ? "Swap applied to the schedule" : "No matching shifts to swap on that date", !ok); return R(); }
+    case "openCreate": S.admin.day = 0; return openAdmin("week");
     case "logout": S.pin = ""; sessionStorage.removeItem("fs_pin"); S.draft = null; return closeAdmin();
   }
 });
@@ -1289,11 +1301,11 @@ $("#tlPrev").onclick = () => { S.tlDay = (S.tlDay ?? curIdx()) - 1; renderTimeli
 $("#tlNext").onclick = () => { S.tlDay = (S.tlDay ?? curIdx()) + 1; renderTimeline(); };
 $("#tlToday").onclick = () => { S.tlDay = null; renderTimeline(); };
 $("#tlCopy").onclick = async () => { try { await navigator.clipboard.writeText(dayText(V(), S.tlDay ?? curIdx())); toast("Copied"); } catch { toast("Couldn't copy", true); } };
-$("#wkPrev").onclick = () => { S.weekOffset--; renderAll(); };
+$("#wkPrev").onclick = () => { setOffset(S.weekOffset - 1); renderAll(); };
 $("#wkNext").onclick = () => { S.weekOffset++; renderAll(); };
-$("#wkSelect").onchange = (e) => { S.weekOffset = (dIdx(e.target.value) - wkStart(V(), curIdx())) / 7; renderAll(); };
+$("#wkSelect").onchange = (e) => { setOffset((dIdx(e.target.value) - wkStart(V(), curIdx())) / 7); renderAll(); };
 $("#wkExport").onclick = async () => {
-  const D = V(), ws = viewWS(); toast("Preparing report…");
+  const D = V(), ws = viewWS(); if (!D.weeks[iDate(ws)]) return toast("Create this week first", true); toast("Preparing report…");
   try { await exportImage(reportHTML(D, ws), `Femini-Shift-Report-${iDate(ws)}.png`); } catch (err) { toast("Couldn't create the image: " + err.message, true); }
 };
 $("#saveAllCards").onclick = async () => {
