@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>جدول شيفتات التيم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F4EF; --card:#FFFFFF; --ink:#1C1917; --muted:#78716C; --soft:#A8A29E; --line:#E7E3DC;
+  --accent:#1E3A5F; --accent-2:#2F5A8A; --ok:#15803D; --ok-bg:#E8F5EC; --warn:#B45309; --warn-bg:#FDF3E3;
+  --bad:#B91C1C; --bad-bg:#FDECEC; --off:#F1EEE8; --radius:14px;
+  --shadow:0 1px 2px rgba(28,25,23,.04),0 4px 16px rgba(28,25,23,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans Arabic",system-ui,sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 20px 120px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.brand h1{font-size:24px;margin:0;font-weight:700;letter-spacing:-.2px}
+.brand .sub{color:var(--muted);font-size:13px;margin-top:2px}
+.clock{display:flex;align-items:center;gap:12px}
+.clock .time{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums}
+.clock .date{color:var(--muted);font-size:13px;line-height:1.3}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 14px;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+.btn:hover{border-color:#cfc8bd}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-2)}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:5px 10px;font-size:13px;border-radius:8px}
+.btn.ghost{background:transparent;border-color:transparent}
+.btn.ghost:hover{background:#00000008}
+.btn[disabled]{opacity:.5;cursor:default}
+.banner{border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:14px}
+.banner.warn{background:var(--warn-bg);color:var(--warn)}
+.banner.info{background:#EAF0F7;color:var(--accent)}
+section.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:18px}
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.sec-head h2{font-size:17px;margin:0;font-weight:600}
+.sec-head .hint{color:var(--muted);font-size:13px}
+/* now cards */
+.now-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.mcard{border:1px solid var(--line);border-radius:12px;padding:14px;position:relative;overflow:hidden;background:#FDFCFA}
+.mcard::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:4px;background:var(--c)}
+.mcard .name{font-weight:600;font-size:16px;display:flex;align-items:center;gap:8px}
+.mcard .role{color:var(--muted);font-size:12px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;margin-top:10px}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.pill.on{background:var(--ok-bg);color:var(--ok)}
+.pill.on .dot{animation:pulse 1.6s infinite}
+.pill.break{background:var(--warn-bg);color:var(--warn)}
+.pill.later,.pill.done{background:#F1EEE8;color:var(--muted)}
+.pill.off{background:var(--bad-bg);color:var(--bad)}
+@keyframes pulse{50%{opacity:.35}}
+.mcard .detail{font-size:13px;margin-top:8px;color:#44403C}
+.mcard .detail b{font-weight:600}
+.bar{height:5px;background:#EFEBE4;border-radius:99px;margin-top:10px;overflow:hidden}
+.bar > i{display:block;height:100%;background:var(--c);border-radius:99px}
+/* timeline */
+.tl-nav{display:flex;align-items:center;gap:6px}
+.tl{position:relative;margin-top:6px}
+.tl-row{display:grid;grid-template-columns:90px 1fr;align-items:center;gap:10px;margin-bottom:8px}
+.tl-row .lbl{font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px}
+.sw{width:10px;height:10px;border-radius:3px;background:var(--c);flex:none}
+.track{position:relative;height:34px;background:repeating-linear-gradient(to left,transparent 0,transparent calc(100%/12 - 1px),#ECE8E1 calc(100%/12 - 1px),#ECE8E1 calc(100%/12));border-radius:8px;background-color:#FAF8F4}
+.blk{position:absolute;top:3px;bottom:3px;border-radius:7px;background:var(--c);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;padding:0 6px}
+.blk .brk{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(45deg,rgba(255,255,255,.55) 0 4px,rgba(255,255,255,.2) 4px 8px)}
+.blk span{position:relative;z-index:1;background:rgba(0,0,0,.22);border-radius:5px;padding:1px 6px;direction:rtl}
+.ticks{display:grid;grid-template-columns:90px 1fr;gap:10px}
+.ticks .t{position:relative;height:20px;font-size:11px;color:var(--muted)}
+.ticks .t span{position:absolute;transform:translateX(50%);white-space:nowrap}
+.nowline{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--bad);border-radius:2px;z-index:3}
+.nowline::after{content:"";position:absolute;top:-4px;left:-3px;width:8px;height:8px;border-radius:50%;background:var(--bad)}
+.cov{font-size:12px;border-radius:8px;padding:4px 10px;font-weight:500}
+.cov.ok{background:var(--ok-bg);color:var(--ok)}
+.cov.bad{background:var(--bad-bg);color:var(--bad)}
+.note{background:var(--warn-bg);color:#7C4A03;border-radius:10px;padding:8px 12px;font-size:13px;margin-top:6px}
+/* week */
+.tbl-wrap{overflow-x:auto;margin:0 -4px;padding:0 4px}
+table.week{width:100%;border-collapse:separate;border-spacing:0;min-width:860px;font-size:13px;table-layout:fixed}
+table.week th:first-child{width:140px}
+table.week th:last-child{width:64px}
+table.week td.mem{position:sticky;right:0;background:var(--card);z-index:1}
+table.week thead th:first-child{right:0;z-index:2}
+table.week th,table.week td{border-bottom:1px solid var(--line);padding:9px 8px;vertical-align:top;text-align:center}
+table.week thead th{font-weight:600;font-size:13px;background:#FAF8F4;position:sticky;top:0}
+table.week thead th:first-child{border-start-start-radius:10px}
+table.week thead th:last-child{border-start-end-radius:10px}
+table.week th .d{display:block;font-weight:400;color:var(--muted);font-size:12px}
+table.week th.today,table.week td.today{background:#EEF3F9}
+table.week td.mem{text-align:start;font-weight:600;white-space:nowrap}
+table.week td.mem .role{display:block;font-weight:400;color:var(--muted);font-size:11px}
+.slot{display:block;border-radius:8px;padding:5px 6px;margin-bottom:4px;background:color-mix(in srgb,var(--c) 12%,white);border:1px solid color-mix(in srgb,var(--c) 28%,white)}
+.slot b{font-weight:600;font-variant-numeric:tabular-nums}
+.slot small{display:block;color:var(--muted);font-size:11px}
+.offcell{color:var(--soft);font-size:12px;background:var(--off);border-radius:8px;padding:5px 0;display:block}
+.ovr-badge{display:inline-block;font-size:10px;font-weight:600;background:var(--warn-bg);color:var(--warn);border-radius:6px;padding:1px 6px;margin-top:3px}
+.hdr-edit{display:block;margin:4px auto 0;font-size:11px;padding:2px 8px}
+td.tot{font-weight:600;font-variant-numeric:tabular-nums}
+.foot-note{color:var(--muted);font-size:12px;margin-top:10px}
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(28,25,23,.4);display:flex;align-items:flex-start;justify-content:center;padding:30px 12px;z-index:50;overflow-y:auto}
+.modal{background:var(--card);border-radius:16px;width:100%;max-width:920px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal.small{max-width:380px}
+.m-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line)}
+.m-head h3{margin:0;font-size:17px}
+.m-body{padding:18px 20px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;padding:0 20px;border-bottom:1px solid var(--line)}
+.tab{border:none;background:none;padding:12px 12px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.daytabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font-size:13px}
+.chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.field{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+input[type=text],input[type=time],input[type=number],input[type=date],input[type=password],select,textarea{border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:#fff;font-size:14px;min-width:0}
+input:focus,select:focus,textarea:focus{outline:2px solid #C9D8EA;border-color:var(--accent-2)}
+.brow{display:grid;grid-template-columns:1.2fr 1fr .8fr 1.6fr auto;gap:10px;align-items:end;padding:12px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;background:#FDFCFA}
+.brow .calc{font-size:12px;color:var(--muted);align-self:center}
+.brks{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px}
+.brks .b{display:flex;gap:6px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:8px;padding:4px 6px}
+.brks .b input{width:auto;padding:3px 6px}
+.mrow{display:grid;grid-template-columns:1fr 1.4fr 70px auto;gap:10px;align-items:end;margin-bottom:10px}
+.rrow{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.muted{color:var(--muted)}
+.ovr-item{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:6px}
+.ovr-item.sel{border-color:var(--accent);background:#F3F7FB}
+.ovr-item.past{opacity:.6}
+.savebar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:14px;padding:10px 12px 10px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:60;font-size:14px}
+.savebar .btn{border-color:#ffffff30;background:#ffffff14;color:#fff}
+.savebar .btn.primary{background:#fff;color:var(--ink);border-color:#fff}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:10px;padding:9px 16px;font-size:14px;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.toast.err{background:var(--bad)}
+.hidden{display:none!important}
+@media (max-width:720px){
+  .wrap{padding:16px 12px 120px}
+  .tl-row,.ticks{grid-template-columns:62px 1fr}
+  .ticks .t span:nth-child(even){display:none}
+  .brow{grid-template-columns:1fr 1fr}
+  .brow .calc{grid-column:1/-1}
+  .mrow{grid-template-columns:1fr 1fr}
+  .clock .time{font-size:22px}
+  .now-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .mcard{padding:10px 12px}
+  .mcard .role{display:none}
+  table.week{min-width:760px}
+  table.week th:first-child{width:86px}
+  table.week td.mem .role{display:none}
+  .wk-long{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>جدول شيفتات التيم</h1>
+      <div class="sub" id="lastUpdate">—</div>
+    </div>
+    <div class="clock">
+      <div>
+        <div class="time" id="clockTime">--:--</div>
+        <div class="date" id="clockDate"></div>
+      </div>
+      <button class="btn" id="editBtn" title="تعديل الجدول">✎ تعديل</button>
+    </div>
+  </header>
+
+  <div id="banners"></div>
+
+  <section class="card">
+    <div class="sec-head">
+      <h2>مين شغال دلوقتي</h2>
+      <span class="hint" id="onNowHint"></span>
+    </div>
+    <div class="now-grid" id="nowGrid"></div>
+  </section>
+
+  <section class="card">
+    <div class="sec-head">
+      <h2 id="tlTitle">جدول اليوم</h2>
+      <div class="tl-nav">
+        <span id="tlCov"></span>
+        <button class="btn sm" id="tlPrev">→</button>
+        <button class="btn sm" id="tlToday">النهارده</button>
+        <button class="btn sm" id="tlNext">←</button>
+        <button class="btn sm" id="tlCopy" title="نسخ جدول اليوم كنص">⧉ نسخ</button>
+      </div>
+    </div>
+    <div id="tlNote"></div>
+    <div class="tl" id="timeline"></div>
+  </section>
+
+  <section class="card">
+    <div class="sec-head">
+      <h2 id="wkTitle">جدول الأسبوع</h2>
+      <div class="tl-nav">
+        <button class="btn sm" id="wkPrev">→ <span class="wk-long">الأسبوع </span>اللي فات</button>
+        <button class="btn sm" id="wkNow">الأسبوع ده</button>
+        <button class="btn sm" id="wkNext"><span class="wk-long">الأسبوع </span>الجاي ←</button>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table class="week" id="weekTbl"></table></div>
+    <div class="foot-note" id="dayNote"></div>
+  </section>
+</div>
+
+<div id="modalRoot"></div>
+<div id="saveRoot"></div>
+<div id="toastRoot"></div>
+
+<script>
+/* ============================================================
+   Default schedule — used until the first save on the server.
+   Day in this schedule = from "dayStart" the night before
+   to "dayStart" on the day itself (default 11 PM → 11 PM),
+   so the night shift belongs to the morning it ends in.
+   ============================================================ */
+const DEFAULT_DATA = {
+  version: 1,
+  updatedAt: null,
+  settings: { dayStart: "23:00", weekStart: 0 },
+  members: [
+    { id: "sherine", name: "شيرين", role: "شيفت الصبح", color: "#C2410C" },
+    { id: "rawan",   name: "روان",  role: "الشيفت المسائي — مع منة", color: "#7C3AED" },
+    { id: "menna",   name: "منة",   role: "الشيفت المسائي — مع روان", color: "#DB2777" },
+    { id: "noha",    name: "نهى",   role: "شيفت الليل", color: "#0E7490" }
+  ],
+  // breaks by shift length: "at" = hours after the shift starts
+  breakRules: [
+    { upTo: 4,  breaks: [{ at: 2, min: 30 }] },
+    { upTo: 6,  breaks: [{ at: 3, min: 60 }] },
+    { upTo: 8,  breaks: [{ at: 4, min: 60 }] },
+    { upTo: 12, breaks: [{ at: 3, min: 60 }, { at: 9, min: 60 }] }
+  ],
+  // weekday: 0 = الأحد ... 6 = السبت
+  week: {
+    "0": [ // الأحد — أجازة نهى
+      { member: "rawan",   start: "23:00", hours: 6 },
+      { member: "menna",   start: "05:00", hours: 6 },
+      { member: "sherine", start: "11:00", hours: 12 }
+    ],
+    "1": [ // الاثنين — أجازة روان ومنة
+      { member: "noha",    start: "23:00", hours: 12 },
+      { member: "sherine", start: "11:00", hours: 12 }
+    ],
+    "2": null, // normal
+    "3": [ // الأربعاء — أجازة شيرين
+      { member: "noha",  start: "23:00", hours: 12 },
+      { member: "rawan", start: "11:00", hours: 6 },
+      { member: "menna", start: "17:00", hours: 6 }
+    ],
+    "4": null, "5": null, "6": null
+  },
+  overrides: {}
+};
+const NORMAL_DAY = [
+  { member: "noha",    start: "23:00", hours: 8 },
+  { member: "sherine", start: "07:00", hours: 8 },
+  { member: "rawan",   start: "15:00", hours: 4 },
+  { member: "menna",   start: "19:00", hours: 4 }
+];
+for (const k of Object.keys(DEFAULT_DATA.week)) if (!DEFAULT_DATA.week[k]) DEFAULT_DATA.week[k] = structuredClone(NORMAL_DAY);
+
+/* ============================ helpers ============================ */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const AR = "٠١٢٣٤٥٦٧٨٩";
+const ar = (s) => String(s).replace(/\d/g, (d) => AR[d]);
+const pad = (n) => String(n).padStart(2, "0");
+const DAYS = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const hm = (s) => { const [h, m] = String(s || "0:0").split(":").map(Number); return (h || 0) * 60 + (m || 0); };
+const toHM = (m) => { m = ((Math.round(m) % 1440) + 1440) % 1440; return pad(Math.floor(m / 60)) + ":" + pad(m % 60); };
+const dIdx = (s) => { const [y, m, d] = s.split("-").map(Number); return Math.round(Date.UTC(y, m - 1, d) / 864e5); };
+const iDate = (i) => new Date(i * 864e5).toISOString().slice(0, 10);
+const wdOf = (i) => new Date(i * 864e5).getUTCDay();
+const dm = (i) => { const d = new Date(i * 864e5); return ar(d.getUTCDate() + "/" + (d.getUTCMonth() + 1)); };
+
+function fmtClock(abs) {
+  const m = ((Math.round(abs) % 1440) + 1440) % 1440;
+  const h = Math.floor(m / 60), mi = m % 60;
+  let h12 = h % 12; if (h12 === 0) h12 = 12;
+  return ar(mi ? `${h12}:${pad(mi)}` : `${h12}`) + " " + (h < 12 ? "ص" : "م");
+}
+function fmtDur(min) {
+  min = Math.max(0, Math.round(min));
+  const h = Math.floor(min / 60), m = min % 60;
+  if (!h) return ar(m) + " د";
+  return ar(h) + " س" + (m ? " " + ar(m) + " د" : "");
+}
+const fmtHours = (min) => ar(Math.round((min / 60) * 10) / 10) + " س";
+
+const cairoFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Cairo", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
+function cairoNow() {
+  const p = Object.fromEntries(cairoFmt.formatToParts(new Date()).map((x) => [x.type, x.value]));
+  const date = `${p.year}-${p.month}-${p.day}`;
+  const idx = dIdx(date);
+  const min = (+p.hour % 24) * 60 + +p.minute + +p.second / 60;
+  return { date, idx, min, abs: idx * 1440 + min, sec: +p.second };
+}
+
+/* ======================= schedule engine ======================= */
+// op-day i window starts at W0(i); dayStart ≥ 12:00 means "the evening before"
+const dayOff = (D) => { const ds = hm(D.settings.dayStart); return ds >= 720 ? ds - 1440 : ds; };
+const W0 = (D, i) => i * 1440 + dayOff(D);
+const opIdxOf = (D, abs) => Math.floor((abs - dayOff(D)) / 1440);
+
+function ruleBreaks(D, hours) {
+  const rules = [...(D.breakRules || [])].sort((a, b) => a.upTo - b.upTo);
+  if (!rules.length) return [];
+  return (rules.find((r) => hours <= r.upTo) || rules[rules.length - 1]).breaks || [];
+}
+function resolveBlock(D, b, i) {
+  const ds = hm(D.settings.dayStart);
+  const st = hm(b.start);
+  const s = W0(D, i) + ((((st - ds) % 1440) + 1440) % 1440);
+  const e = s + Math.round((+b.hours || 0) * 60);
+  const custom = Array.isArray(b.breaks);
+  const raw = custom
+    ? b.breaks.map((x) => { const off = (((hm(x.start) - st) % 1440) + 1440) % 1440; return { s: s + off, e: s + off + (+x.min || 0) }; })
+    : ruleBreaks(D, +b.hours).map((x) => ({ s: s + x.at * 60, e: s + x.at * 60 + (+x.min || 0) }));
+  const breaks = raw.filter((x) => x.s >= s && x.e <= e && x.e > x.s).sort((a, c) => a.s - c.s);
+  const brMin = breaks.reduce((a, x) => a + (x.e - x.s), 0);
+  return { ...b, s, e, breaks, work: e - s - brMin, opIdx: i, custom };
+}
+function rawBlocks(D, i) {
+  const ov = D.overrides && D.overrides[iDate(i)];
+  return ov ? ov.blocks || [] : D.week[String(wdOf(i))] || [];
+}
+function blocksFor(D, i) {
+  const ids = new Set(D.members.map((m) => m.id));
+  return rawBlocks(D, i).filter((b) => ids.has(b.member) && +b.hours > 0).map((b) => resolveBlock(D, b, i)).sort((a, c) => a.s - c.s);
+}
+function coverage(D, i, blocks) {
+  blocks = blocks || blocksFor(D, i);
+  const a = W0(D, i), z = a + 1440;
+  const iv = blocks.map((b) => [Math.max(a, b.s), Math.min(z, b.e)]).filter((x) => x[1] > x[0]).sort((x, y) => x[0] - y[0]);
+  const gaps = [], overlaps = [];
+  let cur = a;
+  for (let k = 0; k < iv.length; k++) {
+    const [s, e] = iv[k];
+    if (s > cur) gaps.push([cur, s]);
+    if (s < cur) overlaps.push([s, Math.min(cur, e)]);
+    cur = Math.max(cur, e);
+  }
+  if (cur < z) gaps.push([cur, z]);
+  return { gaps, overlaps };
+}
+function covBadge(D, i) {
+  const c = coverage(D, i);
+  if (!c.gaps.length && !c.overlaps.length) return `<span class="cov ok">✓ اليوم متغطي ٢٤ ساعة</span>`;
+  const parts = [];
+  c.gaps.forEach((g) => parts.push(`فجوة ${fmtClock(g[0])} – ${fmtClock(g[1])}`));
+  c.overlaps.forEach((g) => parts.push(`تداخل ${fmtClock(g[0])} – ${fmtClock(g[1])}`));
+  return `<span class="cov bad">⚠ ${parts.join(" · ")}</span>`;
+}
+
+/* ============================ state ============================ */
+const S = {
+  data: clone(DEFAULT_DATA),
+  draft: null,
+  pin: sessionStorage.getItem("ts_pin") || "",
+  serverOK: false,
+  fresh: false,
+  tlDay: null,
+  weekOffset: 0,
+  admin: { open: false, tab: "week", wd: 0, ovDate: null, newDate: "" },
+};
+const V = () => S.draft || S.data; // what is shown (draft while editing)
+const dirty = () => S.draft && JSON.stringify(S.draft) !== JSON.stringify(S.data);
+function normalize(d) {
+  const x = Object.assign(clone(DEFAULT_DATA), d || {});
+  x.settings = Object.assign({}, DEFAULT_DATA.settings, x.settings || {});
+  x.week = x.week || {};
+  for (let k = 0; k < 7; k++) if (!Array.isArray(x.week[k])) x.week[k] = [];
+  x.overrides = x.overrides || {};
+  x.members = x.members || [];
+  x.breakRules = x.breakRules || [];
+  return x;
+}
+
+/* ============================ API ============================ */
+async function load(silent) {
+  try {
+    const r = await fetch("/api/schedule", { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    const j = await r.json();
+    S.serverOK = true;
+    S.fresh = !j.data;
+    if (j.data && !(S.draft && dirty())) {
+      S.data = normalize(j.data);
+      if (S.draft) S.draft = clone(S.data);
+    }
+  } catch (e) {
+    if (!silent) S.serverOK = false;
+  }
+  renderAll();
+}
+async function api(method, body) {
+  const r = await fetch("/api/schedule", {
+    method, headers: { "content-type": "application/json", "x-admin-pin": S.pin },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  let j = {}; try { j = await r.json(); } catch {}
+  if (!r.ok) throw Object.assign(new Error(j.error || "خطأ " + r.status), { status: r.status });
+  return j;
+}
+async function save() {
+  if (!S.draft) return;
+  const btns = document.querySelectorAll("[data-act=save]"); btns.forEach((b) => (b.disabled = true));
+  try {
+    const j = await api("PUT", { data: S.draft, baseUpdatedAt: S.data.updatedAt });
+    S.draft.updatedAt = j.updatedAt;
+    S.data = clone(S.draft);
+    S.fresh = false;
+    toast("✓ اتحفظ — التيم هيشوف التعديل علطول");
+  } catch (e) {
+    if (e.status === 401) { S.pin = ""; sessionStorage.removeItem("ts_pin"); }
+    toast(e.message, true);
+  }
+  btns.forEach((b) => (b.disabled = false));
+  renderAll();
+}
+
+/* ============================ render ============================ */
+function renderAll() {
+  renderHeader(); renderBanners(); renderNow(); renderTimeline(); renderWeek(); renderSaveBar();
+  if (S.admin.open) renderAdmin();
+}
+function renderHeader() {
+  const n = cairoNow();
+  $("#clockTime").textContent = fmtClock(n.abs);
+  $("#clockDate").innerHTML = `${DAYS[wdOf(n.idx)]} ${dm(n.idx)}<br>بتوقيت القاهرة`;
+  const u = S.data.updatedAt;
+  $("#lastUpdate").textContent = u
+    ? "آخر تعديل: " + ar(new Date(u).toLocaleString("en-GB", { timeZone: "Africa/Cairo", day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" }))
+    : "الجدول الأساسي";
+  $("#editBtn").textContent = S.draft ? "⚙ لوحة التعديل" : "✎ تعديل";
+}
+function renderBanners() {
+  let h = "";
+  if (!S.serverOK) h += `<div class="banner warn">مش متصل بالسيرفر — بيتعرض الجدول الأساسي، والتعديلات مش هتتحفظ.</div>`;
+  else if (S.fresh) h += `<div class="banner info">ده الجدول الأساسي. أول ما تعمل حفظ من لوحة التعديل هيتسجل على السيرفر.</div>`;
+  $("#banners").innerHTML = h;
+}
+const memById = (D, id) => D.members.find((m) => m.id === id);
+const relDay = (abs, n) => { const d = Math.floor(abs / 1440) - n.idx; return d === 0 ? "النهارده" : d === 1 ? "بكرة" : d === -1 ? "امبارح" : DAYS[wdOf(Math.floor(abs / 1440))]; };
+
+function memberStatus(D, m, n) {
+  const cur = opIdxOf(D, n.abs);
+  let all = [];
+  for (let i = cur - 1; i <= cur + 7; i++) all.push(...blocksFor(D, i).filter((b) => b.member === m.id));
+  all.sort((a, b) => a.s - b.s);
+  const active = all.find((b) => n.abs >= b.s && n.abs < b.e);
+  const today = all.filter((b) => b.opIdx === cur);
+  if (active) {
+    const br = active.breaks.find((x) => n.abs >= x.s && n.abs < x.e);
+    return { state: br ? "break" : "on", b: active, br };
+  }
+  const next = all.find((b) => b.s > n.abs);
+  if (!today.length) return { state: "off", next };
+  if (today.every((b) => b.e <= n.abs)) return { state: "done", next };
+  return { state: "later", next };
+}
+function renderNow() {
+  const D = V(), n = cairoNow();
+  const on = [];
+  $("#nowGrid").innerHTML = D.members.map((m) => {
+    const st = memberStatus(D, m, n);
+    let pill = "", det = "", bar = "";
+    if (st.state === "on" || st.state === "break") {
+      on.push(m.name);
+      const pct = ((n.abs - st.b.s) / (st.b.e - st.b.s)) * 100;
+      bar = `<div class="bar"><i style="width:${pct.toFixed(1)}%"></i></div>`;
+      if (st.state === "break") {
+        pill = `<span class="pill break"><span class="dot"></span>في البريك</span>`;
+        det = `راجعة <b>${fmtClock(st.br.e)}</b> · باقي ${fmtDur(st.br.e - n.abs)}`;
+      } else {
+        pill = `<span class="pill on"><span class="dot"></span>في الشيفت</span>`;
+        const nb = st.b.breaks.find((x) => x.s > n.abs);
+        det = `بتقفل <b>${fmtClock(st.b.e)}</b> · باقي ${fmtDur(st.b.e - n.abs)}` + (nb ? `<br>البريك الجاي ${fmtClock(nb.s)}` : "");
+      }
+    } else {
+      const lab = { off: "أجازة النهارده", done: "خلصت شيفتها", later: "مش في الشيفت" }[st.state];
+      pill = `<span class="pill ${st.state}"><span class="dot"></span>${lab}</span>`;
+      det = st.next ? `الشيفت الجاي: <b>${relDay(st.next.s, n)} ${fmtClock(st.next.s)}</b>` : `مفيش شيفتات جاية`;
+    }
+    return `<div class="mcard" style="--c:${esc(m.color)}"><div class="name">${esc(m.name)}</div><div class="role">${esc(m.role || "")}</div>${pill}<div class="detail">${det}</div>${bar}</div>`;
+  }).join("") || `<div class="muted">مفيش بنات في الجدول — ضيف من لوحة التعديل.</div>`;
+  $("#onNowHint").textContent = on.length ? "شغالين: " + on.join(" و ") : "مفيش حد شغال دلوقتي";
+}
+function renderTimeline() {
+  const D = V(), n = cairoNow();
+  const cur = opIdxOf(D, n.abs);
+  const i = S.tlDay ?? cur;
+  const a = W0(D, i);
+  const blocks = blocksFor(D, i);
+  const ov = D.overrides[iDate(i)];
+  $("#tlTitle").textContent = (i === cur ? "جدول النهارده — " : "جدول ") + DAYS[wdOf(i)] + " " + dm(i);
+  $("#tlCov").innerHTML = covBadge(D, i);
+  $("#tlNote").innerHTML = ov ? `<div class="note">✎ يوم معدّل${ov.note ? ": " + esc(ov.note) : ""}</div>` : "";
+  const pos = (x) => (((x - a) / 1440) * 100).toFixed(3) + "%";
+  let h = "";
+  const offs = [];
+  for (const m of D.members) {
+    const mb = blocks.filter((b) => b.member === m.id);
+    if (!mb.length) offs.push(m.name);
+    h += `<div class="tl-row" style="--c:${esc(m.color)}"><div class="lbl"><span class="sw"></span>${esc(m.name)}</div><div class="track">`;
+    for (const b of mb) {
+      const s = Math.max(a, b.s), e = Math.min(a + 1440, b.e);
+      const w = e - s;
+      h += `<div class="blk" style="right:${pos(s)};width:${((w / 1440) * 100).toFixed(3)}%" title="${esc(m.name)}: ${fmtClock(b.s)} – ${fmtClock(b.e)}">`;
+      for (const br of b.breaks) h += `<i class="brk" style="right:${(((br.s - s) / w) * 100).toFixed(2)}%;width:${(((br.e - br.s) / w) * 100).toFixed(2)}%" title="بريك ${fmtClock(br.s)} – ${fmtClock(br.e)}"></i>`;
+      h += `<span>${fmtClock(b.s)} – ${fmtClock(b.e)}</span></div>`;
+    }
+    if (n.abs >= a && n.abs < a + 1440) h += `<div class="nowline" style="right:${pos(n.abs)}"></div>`;
+    h += `</div></div>`;
+  }
+  let t = "";
+  for (let k = 0; k <= 12; k++) t += `<span style="right:${((k / 12) * 100).toFixed(3)}%">${fmtClock(a + k * 120)}</span>`;
+  h += `<div class="ticks"><div></div><div class="t">${t}</div></div>`;
+  if (offs.length) h += `<div class="foot-note">أجازة: ${offs.map(esc).join("، ")}</div>`;
+  $("#timeline").innerHTML = h;
+}
+function weekStartIdx(D, n) {
+  const ws = +D.settings.weekStart || 0;
+  const cur = opIdxOf(D, n.abs);
+  return cur - ((wdOf(cur) - ws + 7) % 7) + S.weekOffset * 7;
+}
+function renderWeek() {
+  const D = V(), n = cairoNow();
+  const cur = opIdxOf(D, n.abs);
+  const i0 = weekStartIdx(D, n);
+  const days = Array.from({ length: 7 }, (_, k) => i0 + k);
+  $("#wkTitle").textContent = `جدول الأسبوع ${dm(days[0])} – ${dm(days[6])}`;
+  const editing = !!S.draft;
+  let h = `<thead><tr><th style="text-align:start">البنت</th>`;
+  for (const i of days) {
+    const ov = D.overrides[iDate(i)];
+    h += `<th class="${i === cur ? "today" : ""}">${DAYS[wdOf(i)]}<span class="d">${dm(i)}</span>` +
+      (ov ? `<span class="ovr-badge" title="${esc(ov.note || "")}">✎ معدّل</span>` : "") +
+      (editing ? `<button class="btn sm hdr-edit" data-act="editDay" data-date="${iDate(i)}">${ov ? "تعديل" : "تعديل اليوم ده"}</button>` : "") +
+      `</th>`;
+  }
+  h += `<th>الساعات</th></tr></thead><tbody>`;
+  const per = days.map((i) => blocksFor(D, i));
+  for (const m of D.members) {
+    let tot = 0;
+    h += `<tr style="--c:${esc(m.color)}"><td class="mem"><span class="row" style="gap:6px"><span class="sw"></span>${esc(m.name)}</span><span class="role">${esc(m.role || "")}</span></td>`;
+    days.forEach((i, k) => {
+      const mb = per[k].filter((b) => b.member === m.id);
+      h += `<td class="${i === cur ? "today" : ""}">`;
+      if (!mb.length) h += `<span class="offcell">أجازة</span>`;
+      for (const b of mb) {
+        tot += b.work;
+        const prev = Math.floor(b.s / 1440) < i ? `<small>من ليلة ${DAYS[wdOf(i - 1)]}</small>` : "";
+        const brs = b.breaks.length ? `<small>بريك ${b.breaks.map((x) => fmtClock(x.s)).join(" و ")}</small>` : "";
+        h += `<span class="slot"><b>${fmtClock(b.s)} – ${fmtClock(b.e)}</b>${prev}${brs}</span>`;
+      }
+      h += `</td>`;
+    });
+    h += `<td class="tot">${fmtHours(tot)}</td></tr>`;
+  }
+  const notes = days.map((i) => D.overrides[iDate(i)]?.note).filter(Boolean);
+  if (notes.length) {
+    h += `<tr><td class="mem">ملاحظات</td>` + days.map((i) => `<td style="font-size:12px;color:var(--warn)">${esc(D.overrides[iDate(i)]?.note || "")}</td>`).join("") + `<td></td></tr>`;
+  }
+  h += `</tbody>`;
+  $("#weekTbl").innerHTML = h;
+  $("#dayNote").textContent = `اليوم في الجدول بيبدأ ${fmtClock(hm(D.settings.dayStart))}${dayOff(D) < 0 ? " من الليلة اللي قبله" : ""} — عشان شيفت الليل يتحسب على اليوم اللي بيخلص فيه. الساعات = ساعات الشغل من غير البريك.`;
+}
+function renderSaveBar() {
+  $("#saveRoot").innerHTML = dirty() && !S.admin.open
+    ? `<div class="savebar">فيه تعديلات مش محفوظة<button class="btn sm" data-act="discard">إلغاء</button><button class="btn sm primary" data-act="save">حفظ</button></div>`
+    : "";
+}
+function toast(msg, err) {
+  const el = document.createElement("div");
+  el.className = "toast" + (err ? " err" : "");
+  el.textContent = msg;
+  $("#toastRoot").appendChild(el);
+  setTimeout(() => el.remove(), err ? 5000 : 2800);
+}
+function dayText(D, i) {
+  const blocks = blocksFor(D, i);
+  const ov = D.overrides[iDate(i)];
+  let t = `جدول ${DAYS[wdOf(i)]} ${dm(i)}\n`;
+  for (const b of blocks) {
+    const m = memBy(D, b.member);
+    t += `• ${m.name}: ${fmtClock(b.s)} – ${fmtClock(b.e)}` + (b.breaks.length ? ` (بريك ${b.breaks.map((x) => fmtClock(x.s) + "–" + fmtClock(x.e)).join("، ")})` : "") + "\n";
+  }
+  const offs = D.members.filter((m) => !blocks.some((b) => b.member === m.id)).map((m) => m.name);
+  if (offs.length) t += `أجازة: ${offs.join("، ")}\n`;
+  if (ov?.note) t += `ملاحظة: ${ov.note}\n`;
+  return t.trim();
+}
+const memBy = memById;
+
+/* ============================ admin ============================ */
+function openAdmin(tab) {
+  if (!S.pin) return openPin(tab);
+  if (!S.draft) S.draft = clone(S.data);
+  S.admin.open = true;
+  if (tab) S.admin.tab = tab;
+  renderAll();
+}
+function closeAdmin() { S.admin.open = false; $("#modalRoot").innerHTML = ""; renderAll(); }
+function openPin(tab) {
+  if (!S.serverOK) return toast("مش متصل بالسيرفر — التعديل محتاج الداشبورد تكون على Vercel", true);
+  $("#modalRoot").innerHTML = `<div class="overlay"><div class="modal small"><div class="m-head"><h3>دخول التعديل</h3><button class="btn ghost" data-act="closeModal">✕</button></div>
+    <form class="m-body" id="pinForm"><label class="field">الـ PIN<input type="password" id="pinIn" inputmode="numeric" autocomplete="current-password" autofocus></label>
+    <div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn primary" type="submit">دخول</button></div></form></div></div>`;
+  $("#pinIn").focus();
+  $("#pinForm").onsubmit = async (e) => {
+    e.preventDefault();
+    S.pin = $("#pinIn").value.trim();
+    try { await api("POST"); sessionStorage.setItem("ts_pin", S.pin); openAdmin(tab); }
+    catch (err) { S.pin = ""; toast(err.message, true); }
+  };
+}
+function memberOptions(D, sel) {
+  return D.members.map((m) => `<option value="${esc(m.id)}" ${m.id === sel ? "selected" : ""}>${esc(m.name)}</option>`).join("");
+}
+function blocksEditor(D, list, path, i) {
+  let h = "";
+  list.forEach((b, k) => {
+    const p = `${path}.${k}`;
+    const r = resolveBlock(D, b, i);
+    const custom = Array.isArray(b.breaks);
+    h += `<div class="brow">
+      <label class="field">البنت<select data-path="${p}.member">${memberOptions(D, b.member)}</select></label>
+      <label class="field">من<input type="time" step="900" data-path="${p}.start" value="${esc(b.start)}"></label>
+      <label class="field">عدد الساعات<input type="number" min="0.5" max="24" step="0.5" data-path="${p}.hours" value="${esc(b.hours)}"></label>
+      <div class="calc">${fmtClock(r.s)} ← ${fmtClock(r.e)}${Math.floor(r.s / 1440) < i ? " (من الليلة اللي قبلها)" : ""} · شغل فعلي ${fmtHours(r.work)}</div>
+      <button class="btn sm danger" data-act="delItem" data-path="${path}" data-i="${k}" title="حذف">حذف</button>
+      <div class="brks"><span class="muted">البريك:</span>`;
+    if (!custom) {
+      h += r.breaks.length ? r.breaks.map((x) => `<span class="b">${fmtClock(x.s)} – ${fmtClock(x.e)}</span>`).join("") : `<span class="muted">مفيش</span>`;
+      h += `<span class="muted" style="font-size:12px">(تلقائي حسب طول الشيفت)</span><button class="btn sm" data-act="customBreaks" data-path="${p}" data-i="${k}">تخصيص</button>`;
+    } else {
+      b.breaks.forEach((x, j) => {
+        h += `<span class="b"><input type="time" step="900" data-path="${p}.breaks.${j}.start" value="${esc(x.start)}"><input type="number" min="5" step="5" style="width:64px" data-path="${p}.breaks.${j}.min" value="${esc(x.min)}"> د<button class="btn sm ghost" data-act="delItem" data-path="${p}.breaks" data-i="${j}">✕</button></span>`;
+      });
+      h += `<button class="btn sm" data-act="addBreak" data-path="${p}.breaks">+ بريك</button><button class="btn sm ghost" data-act="autoBreaks" data-path="${p}">رجّعه تلقائي</button>`;
+    }
+    h += `</div></div>`;
+  });
+  h += `<div class="row"><button class="btn sm" data-act="addBlock" data-path="${path}">+ إضافة شيفت</button></div>`;
+  return h;
+}
+function renderAdmin() {
+  const D = S.draft, A = S.admin, n = cairoNow();
+  const tabs = [["week", "الجدول الأسبوعي"], ["ovr", "ظروف وتعديلات بتاريخ"], ["members", "البنات"], ["breaks", "قواعد البريك"], ["settings", "إعدادات"]];
+  let body = "";
+  if (A.tab === "week") {
+    const wd = A.wd;
+    // a representative date for this weekday (next occurrence), used for coverage + clock math
+    const cur = opIdxOf(D, n.abs);
+    const i = cur + ((wd - wdOf(cur) + 7) % 7);
+    const fake = clone(D); delete fake.overrides[iDate(i)];
+    body += `<div class="daytabs">${DAYS.map((d, k) => `<button class="chip ${k === wd ? "active" : ""}" data-act="wd" data-i="${k}">${d}</button>`).join("")}</div>
+      <div class="row" style="justify-content:space-between;margin-bottom:10px"><div class="muted" style="font-size:13px">ده النمط الثابت لكل ${DAYS[wd]}. أي تاريخ معيّن تقدر تعدّله لوحده من تاب "ظروف وتعديلات".</div>${covBadge(fake, i)}</div>
+      ${blocksEditor(fake, D.week[wd], `week.${wd}`, i)}
+      <div class="row" style="margin-top:12px"><span class="muted" style="font-size:13px">انسخ نمط يوم تاني:</span>${DAYS.map((d, k) => (k === wd ? "" : `<button class="btn sm" data-act="copyWeek" data-i="${k}">${d}</button>`)).join("")}</div>`;
+  } else if (A.tab === "ovr") {
+    const dates = Object.keys(D.overrides).sort();
+    const today = iDate(opIdxOf(D, n.abs));
+    body += `<div class="row" style="margin-bottom:12px"><label class="field">تاريخ<input type="date" id="newOvDate" value="${esc(A.newDate || today)}"></label>
+      <button class="btn primary" data-act="addOvr" style="align-self:end">+ تعديل اليوم ده</button>
+      <span class="muted" style="font-size:12px;align-self:end">بيتنسخ النمط الثابت بتاع اليوم وتعدّل عليه (غياب، تبديل، تغيير مواعيد...)</span></div>`;
+    if (!dates.length) body += `<div class="muted">مفيش أيام معدّلة.</div>`;
+    const upcoming = dates.filter((d) => d >= today), past = dates.filter((d) => d < today).reverse();
+    for (const d of [...upcoming, ...past]) {
+      const o = D.overrides[d], i = dIdx(d);
+      body += `<div class="ovr-item ${d === A.ovDate ? "sel" : ""} ${d < today ? "past" : ""}"><div><b>${DAYS[wdOf(i)]} ${dm(i)}</b> <span class="muted" style="font-size:13px">${esc(o.note || "")}</span></div>
+        <div class="row"><button class="btn sm" data-act="selOvr" data-date="${d}">${d === A.ovDate ? "مفتوح" : "فتح"}</button><button class="btn sm danger" data-act="delOvr" data-date="${d}">حذف (رجوع للثابت)</button></div></div>`;
+      if (d === A.ovDate) {
+        body += `<div style="border:1px solid var(--accent);border-radius:12px;padding:14px;margin:4px 0 14px">
+          <div class="row" style="justify-content:space-between;margin-bottom:10px">
+            <label class="field" style="flex:1">ملاحظة / السبب<input type="text" data-path="overrides.${d}.note" value="${esc(o.note || "")}" placeholder="مثلاً: شيرين عندها ظرف — نهى مكمّلة لحد ٧ م"></label>
+            ${covBadge(D, i)}</div>
+          ${blocksEditor(D, o.blocks, `overrides.${d}.blocks`, i)}
+          <div class="row" style="margin-top:12px"><span class="muted" style="font-size:13px">استخدم نمط يوم:</span>${DAYS.map((x, k) => `<button class="btn sm" data-act="ovrPattern" data-date="${d}" data-i="${k}">${x}</button>`).join("")}</div></div>`;
+      }
+    }
+  } else if (A.tab === "members") {
+    body += `<div class="muted" style="font-size:13px;margin-bottom:12px">ضيف أو عدّل أو احذف. لو حذفت بنت هتتشال شيفتاتها من الجدول والأيام المعدّلة.</div>`;
+    D.members.forEach((m, k) => {
+      body += `<div class="mrow"><label class="field">الاسم<input type="text" data-path="members.${k}.name" value="${esc(m.name)}"></label>
+        <label class="field">الوصف / الشيفت<input type="text" data-path="members.${k}.role" value="${esc(m.role || "")}"></label>
+        <label class="field">اللون<input type="color" data-path="members.${k}.color" value="${esc(m.color)}" style="height:38px;padding:2px;border:1px solid var(--line);border-radius:8px;width:100%"></label>
+        <button class="btn sm danger" data-act="delMember" data-i="${k}" style="align-self:end;margin-bottom:4px">حذف</button></div>`;
+    });
+    body += `<button class="btn sm" data-act="addMember">+ إضافة بنت</button>`;
+  } else if (A.tab === "breaks") {
+    body += `<div class="muted" style="font-size:13px;margin-bottom:12px">البريك التلقائي حسب طول الشيفت. "بعد" = عدد الساعات من بداية الشيفت. أي شيفت تقدر تخصص البريك بتاعه لوحده.</div>`;
+    D.breakRules.forEach((r, k) => {
+      body += `<div class="rrow"><div class="row"><span>شيفت لحد</span><input type="number" min="0.5" step="0.5" style="width:80px" data-path="breakRules.${k}.upTo" value="${esc(r.upTo)}"><span>ساعة</span>
+        <button class="btn sm danger" data-act="delItem" data-path="breakRules" data-i="${k}" style="margin-inline-start:auto">حذف القاعدة</button></div><div class="row">`;
+      (r.breaks || []).forEach((x, j) => {
+        body += `<span class="brks"><span class="b">بعد <input type="number" min="0" step="0.5" style="width:64px" data-path="breakRules.${k}.breaks.${j}.at" value="${esc(x.at)}"> س — <input type="number" min="5" step="5" style="width:64px" data-path="breakRules.${k}.breaks.${j}.min" value="${esc(x.min)}"> د <button class="btn sm ghost" data-act="delItem" data-path="breakRules.${k}.breaks" data-i="${j}">✕</button></span></span>`;
+      });
+      body += `<button class="btn sm" data-act="addRuleBreak" data-path="breakRules.${k}.breaks">+ بريك</button></div></div>`;
+    });
+    body += `<button class="btn sm" data-act="addRule">+ قاعدة</button>`;
+  } else if (A.tab === "settings") {
+    body += `<div class="row" style="gap:20px;align-items:end">
+      <label class="field">بداية اليوم في الجدول<input type="time" step="900" data-path="settings.dayStart" value="${esc(D.settings.dayStart)}"></label>
+      <label class="field">أول يوم في الأسبوع<select data-path="settings.weekStart" data-num="1">${DAYS.map((d, k) => `<option value="${k}" ${+D.settings.weekStart === k ? "selected" : ""}>${d}</option>`).join("")}</select></label></div>
+      <p class="muted" style="font-size:13px">بداية اليوم ١١ م معناها إن شيفت الليل (١١ م – ٧ ص) بيتحسب على اليوم اللي بيخلص فيه الصبح. أي شيفت بيبدأ من ١١ م لحد ١٢ بالليل بيتحسب من الليلة اللي قبلها.</p>
+      <hr style="border:none;border-top:1px solid var(--line);margin:16px 0">
+      <div class="row"><button class="btn sm" data-act="export">⬇ تنزيل نسخة احتياطية (JSON)</button><label class="btn sm">⬆ استرجاع من ملف<input type="file" accept="application/json" id="importFile" class="hidden"></label><button class="btn sm danger" data-act="logout">خروج من التعديل</button></div>`;
+  }
+  const scroll = $(".overlay")?.scrollTop || 0;
+  $("#modalRoot").innerHTML = `<div class="overlay" data-act="overlay"><div class="modal">
+    <div class="m-head"><h3>تعديل الجدول</h3><div class="row"><button class="btn sm primary" data-act="save" ${dirty() ? "" : "disabled"}>حفظ</button><button class="btn ghost" data-act="closeModal">✕</button></div></div>
+    <div class="tabs">${tabs.map(([k, l]) => `<button class="tab ${A.tab === k ? "active" : ""}" data-act="tab" data-tab="${k}">${l}</button>`).join("")}</div>
+    <div class="m-body" id="adminBody">${body}</div></div></div>`;
+  const ov = $(".overlay"); if (ov) ov.scrollTop = scroll;
+  const f = $("#importFile");
+  if (f) f.onchange = async () => {
+    try { const d = normalize(JSON.parse(await f.files[0].text())); d.updatedAt = S.data.updatedAt; S.draft = d; toast("اتحمّل — راجع واعمل حفظ"); renderAll(); }
+    catch { toast("الملف مش صالح", true); }
+  };
+}
+
+/* path helpers for the editor */
+function getPath(o, p) { return p.split(".").reduce((x, k) => (x == null ? x : x[k]), o); }
+function setPath(o, p, v) { const ks = p.split("."); const last = ks.pop(); const t = getPath(o, ks.join(".")); t[last] = v; }
+
+document.addEventListener("input", onEdit);
+document.addEventListener("change", onEdit);
+function onEdit(e) {
+  const el = e.target.closest("[data-path]");
+  if (!el || !S.draft || el.tagName === "BUTTON") return;
+  if (e.type === "input" && el.tagName === "SELECT") return;
+  let v = el.value;
+  if (el.type === "number" || el.dataset.num) v = v === "" ? 0 : parseFloat(v);
+  if (el.type === "time" && !v) return;
+  setPath(S.draft, el.dataset.path, v);
+  renderNow(); renderTimeline(); renderWeek(); renderSaveBar();
+  $("#modalRoot .btn.primary[data-act=save]")?.toggleAttribute("disabled", !dirty());
+  // refresh computed labels in the admin after a value is committed
+  if (e.type === "change" && el.type !== "text") renderAdmin();
+}
+
+document.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-act]");
+  if (!el) return;
+  const act = el.dataset.act, D = S.draft, p = el.dataset.path, i = +el.dataset.i;
+  const rerender = () => { renderAll(); };
+  switch (act) {
+    case "overlay": if (e.target === el) closeAdmin(); return;
+    case "closeModal": if (S.admin.open) closeAdmin(); else $("#modalRoot").innerHTML = ""; return;
+    case "save": return save();
+    case "discard": if (confirm("تلغي كل التعديلات اللي مش محفوظة؟")) { S.draft = clone(S.data); rerender(); } return;
+    case "tab": S.admin.tab = el.dataset.tab; return rerender();
+    case "wd": S.admin.wd = i; return rerender();
+    case "addBlock": {
+      const list = getPath(D, p);
+      const last = list[list.length - 1];
+      const start = last ? toHM(hm(last.start) + last.hours * 60) : "07:00";
+      list.push({ member: D.members[0]?.id || "", start, hours: 8 });
+      return rerender();
+    }
+    case "delItem": getPath(D, p).splice(i, 1); return rerender();
+    case "customBreaks": {
+      const b = getPath(D, p);
+      const r = resolveBlock(D, b, 0);
+      b.breaks = r.breaks.map((x) => ({ start: toHM(x.s), min: x.e - x.s }));
+      if (!b.breaks.length) b.breaks.push({ start: toHM(hm(b.start) + 120), min: 60 });
+      return rerender();
+    }
+    case "autoBreaks": delete getPath(D, p).breaks; return rerender();
+    case "addBreak": { const l = getPath(D, p); const lst = l[l.length - 1]; l.push({ start: lst ? toHM(hm(lst.start) + 180) : "12:00", min: 60 }); return rerender(); }
+    case "copyWeek": if (confirm(`تستبدل شيفتات ${DAYS[S.admin.wd]} بنمط ${DAYS[i]}؟`)) { D.week[S.admin.wd] = clone(D.week[i]); } return rerender();
+    case "addOvr": {
+      const d = $("#newOvDate").value; if (!d) return;
+      S.admin.newDate = d;
+      if (!D.overrides[d]) D.overrides[d] = { note: "", blocks: clone(D.week[wdOf(dIdx(d))] || []) };
+      S.admin.ovDate = d; return rerender();
+    }
+    case "editDay": {
+      const d = el.dataset.date;
+      if (!D.overrides[d]) D.overrides[d] = { note: "", blocks: clone(D.week[wdOf(dIdx(d))] || []) };
+      S.admin.ovDate = d; S.admin.newDate = d; return openAdmin("ovr");
+    }
+    case "selOvr": S.admin.ovDate = S.admin.ovDate === el.dataset.date ? null : el.dataset.date; return rerender();
+    case "delOvr": if (confirm("ترجّع اليوم ده للجدول الثابت؟")) { delete D.overrides[el.dataset.date]; if (S.admin.ovDate === el.dataset.date) S.admin.ovDate = null; } return rerender();
+    case "ovrPattern": D.overrides[el.dataset.date].blocks = clone(D.week[i]); return rerender();
+    case "addMember": D.members.push({ id: "m" + Date.now().toString(36), name: "بنت جديدة", role: "", color: ["#4D7C0F", "#9333EA", "#0F766E", "#BE123C", "#A16207"][D.members.length % 5] }); return rerender();
+    case "delMember": {
+      const m = D.members[i];
+      if (!confirm(`تحذف ${m.name}؟ شيفتاتها هتتشال من الجدول.`)) return;
+      D.members.splice(i, 1);
+      for (const k in D.week) D.week[k] = D.week[k].filter((b) => b.member !== m.id);
+      for (const k in D.overrides) D.overrides[k].blocks = D.overrides[k].blocks.filter((b) => b.member !== m.id);
+      return rerender();
+    }
+    case "addRule": D.breakRules.push({ upTo: 10, breaks: [{ at: 4, min: 60 }] }); return rerender();
+    case "addRuleBreak": getPath(D, p).push({ at: 2, min: 30 }); return rerender();
+    case "export": {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([JSON.stringify(S.draft, null, 2)], { type: "application/json" }));
+      a.download = `team-shifts-${cairoNow().date}.json`; a.click(); return;
+    }
+    case "logout": S.pin = ""; sessionStorage.removeItem("ts_pin"); S.draft = null; return closeAdmin();
+  }
+});
+
+/* nav buttons */
+$("#editBtn").onclick = () => openAdmin();
+$("#tlPrev").onclick = () => { const D = V(); S.tlDay = (S.tlDay ?? opIdxOf(D, cairoNow().abs)) - 1; renderTimeline(); };
+$("#tlNext").onclick = () => { const D = V(); S.tlDay = (S.tlDay ?? opIdxOf(D, cairoNow().abs)) + 1; renderTimeline(); };
+$("#tlToday").onclick = () => { S.tlDay = null; renderTimeline(); };
+$("#tlCopy").onclick = async () => {
+  const D = V(); const i = S.tlDay ?? opIdxOf(D, cairoNow().abs);
+  try { await navigator.clipboard.writeText(dayText(D, i)); toast("اتنسخ ✓"); } catch { toast("مقدرتش أنسخ", true); }
+};
+$("#wkPrev").onclick = () => { S.weekOffset--; renderWeek(); };
+$("#wkNext").onclick = () => { S.weekOffset++; renderWeek(); };
+$("#wkNow").onclick = () => { S.weekOffset = 0; renderWeek(); };
+window.addEventListener("beforeunload", (e) => { if (dirty()) { e.preventDefault(); e.returnValue = ""; } });
+
+/* live clock + periodic refresh */
+setInterval(() => { renderHeader(); renderNow(); renderTimeline(); }, 20000);
+setInterval(() => { if (!S.admin.open) load(true); }, 120000);
+renderAll();
+load();
+</script>
+</body>
+</html>
