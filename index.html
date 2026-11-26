@@ -501,7 +501,7 @@ tr.cdays .offl{text-decoration:underline dotted var(--bad);text-underline-offset
   .dtl .mk{grid-template-columns:repeat(2,1fr)}
   .dtl .tw{overflow-x:auto}
 }
-.cbar i.late{background:#E3B06A}
+.cbar i.late{background:#E3B06A}.cbar i.unk{background:#C9BEDD}
 .spd{display:flex;height:10px;width:120px;border-radius:9px;overflow:hidden;margin-left:auto;background:var(--line-2)}
 .spd i{display:block;height:100%}.spd .b0{background:var(--ok)}.spd .b1{background:#E3B06A}.spd .b2{background:#D9825B}.spd .b3{background:#B4233A}
 .subm{font-size:11.5px;white-space:nowrap}.subm.ok{color:var(--ok)}.subm.late{color:var(--warn)}.subm.na{color:var(--soft)}
@@ -1635,11 +1635,11 @@ function agg(rows, a, b, shift = RS.shift) {
 //   on time = written before the deadline · late = written after it · missing = deadline passed, nothing written
 // Times come from the Apps Script edit trigger; reports written before it was installed count as "time not recorded".
 function compliance(D, p, a, b, t, shift = RS.shift) {
-  const out = { expected: 0, done: 0, missing: [], offLogged: [], excused: [], schedDays: 0, onTime: 0, late: [], unknown: 0, pending: 0, delays: [], buckets: [0, 0, 0, 0], edited: 0, median: null, known: 0 };
+  const out = { expected: 0, done: 0, missing: [], offLogged: [], excused: [], schedDays: 0, onTime: 0, late: [], unknown: 0, pending: 0, delays: [], buckets: [0, 0, 0, 0], edited: 0, median: null, known: 0, missTimed: 0, timed: 0, rate: null };
   if (!p.m) return out;
   const byI = Object.fromEntries(p.rows.map((r) => [r.i, r]));
   const exc = new Set((D.requests || []).filter((r) => r.member === p.m.id && EXCUSED.has(r.type) && r.status !== "rejected").map((r) => dIdx(r.date)));
-  const now = cairoNow().abs, g = graceOf(D), rs = D.settings.reportsStart ? dIdx(D.settings.reportsStart) : null;
+  const now = cairoNow().abs, g = graceOf(D), rs = D.settings.reportsStart ? dIdx(D.settings.reportsStart) : null, since = p.stampSince;
   for (let i = a; i <= Math.min(b, t + 1); i++) {
     if (i <= t && weekAt(D, wkStart(D, i))) out.schedDays++;
     if (rs != null && i < rs) continue; // before report tracking started
@@ -1649,7 +1649,7 @@ function compliance(D, p, a, b, t, shift = RS.shift) {
     const due = c.end + g, r = byI[i], rep = !!(r && (r.hasNums || r.fb)), st = rep && r.st ? r.st : null;
     if (!rep && now < due) { out.pending++; continue; } // shift not over yet, or still inside the grace hour
     out.expected++;
-    if (!rep) { out.missing.push(i); if (r && r.off) out.offLogged.push(i); continue; }
+    if (!rep) { out.missing.push(i); if (r && r.off) out.offLogged.push(i); if (since != null && due >= since) out.missTimed++; continue; }
     out.done++;
     if (!st) { out.unknown++; continue; }
     const delay = st.f - c.end;
@@ -1659,7 +1659,8 @@ function compliance(D, p, a, b, t, shift = RS.shift) {
     if (st.l != null && st.l - st.f > 360) out.edited++;
   }
   out.median = median(out.delays);
-  out.rate = out.known + out.missing.length ? out.onTime / (out.known + out.missing.length) : null; // on-time rate over days with a known outcome
+  out.timed = out.known + out.missTimed; // days due after submission times started recording
+  out.rate = out.timed ? out.onTime / out.timed : null;
   return out;
 }
 // "Thu 26 Nov · 3:42 PM — 42 min after shift" for the profile's day table
@@ -1714,7 +1715,7 @@ function renderReports() {
     <div class="kpi"><div class="l">Items per order</div><div class="v">${T.ipo == null ? "—" : nf2.format(T.ipo)}</div>${X(T.ipo, P.ipo)}</div>
     <div class="kpi"><div class="l">Refund rate</div><div class="v">${fPct(T.refundRate)}<small>· ${fN(T.refunds)}</small></div>${X(T.refundRate, P.refundRate, true, true)}</div>
     <div class="kpi"><div class="l">Exchange rate</div><div class="v">${fPct(T.exchRate)}<small>· ${fN(T.exch)}</small></div>${X(T.exchRate, P.exchRate, true, true)}</div>
-    ${(() => { const ot = people.reduce((x, p) => x + p.comp.onTime, 0), kn = people.reduce((x, p) => x + p.comp.known + p.comp.missing.length, 0), ms = people.reduce((x, p) => x + p.comp.missing.length, 0), lt = people.reduce((x, p) => x + p.comp.late.length, 0), uk = people.reduce((x, p) => x + p.comp.unknown, 0);
+    ${(() => { const ot = people.reduce((x, p) => x + p.comp.onTime, 0), kn = people.reduce((x, p) => x + p.comp.timed, 0), ms = people.reduce((x, p) => x + p.comp.missing.length, 0), lt = people.reduce((x, p) => x + p.comp.late.length, 0), uk = people.reduce((x, p) => x + p.comp.unknown, 0);
       return `<div class="kpi"><div class="l">Reports on time</div><div class="v ${kn && ot < kn ? "bad" : kn ? "ok" : ""}">${kn ? fPct(ot / kn, 0) : "—"}<small>${kn ? `· ${ot}/${kn}` : ""}</small></div><div class="dl ${ms || lt ? "bad" : "flat"}">${exp ? `${ms} missing · ${lt} late${uk ? ` · ${uk} time not recorded` : ""}` : "No due reports in this period"}</div></div>`; })()}</div>`;
   h += `<section class="card"><div class="sh"><div><div class="eyebrow">Team Reports · Sales Performance</div><h2>${rngTxt(a, b)}</h2><div class="sub">Daily sales from ${sales.length} team sheet${sales.length === 1 ? "" : "s"}${RS.shift ? ` · ${esc(RS.shift)} shifts` : ""}</div></div></div>
     ${b - a > 400 ? monthBarsSVG(sales, a, b) : trendSVG(sales, a, b)}</section>`;
@@ -1744,11 +1745,11 @@ function renderReports() {
   h += `<section class="card"><div class="sh"><div><div class="eyebrow">Discipline · checked against the Weekly Schedule</div><h2>Report Submission &amp; Speed</h2><div class="sub">Each scheduled work day is due <b>${fmtDelay(G)} after her shift ends</b>. Written before that = on time · after = late · nothing by then = missing. Days off and approved excuses aren't counted.${D.settings.reportsStart ? ` Tracking from ${dmy(dIdx(D.settings.reportsStart), 1)}.` : ""} ${isFinite(since) ? `Submission times recorded since ${dmy(Math.floor(since / 1440), 1)}.` : `<b>Submission times start recording once the updated Apps Script is installed.</b>`}</div></div></div>
     <div class="lbw"><table class="lbt ctb"><thead><tr><th>Team member</th><th>On-time rate</th><th>Due</th><th>On time</th><th>Late</th><th>Missing</th><th>Typical time after shift</th><th>Speed</th><th>Excused</th><th>Last report</th><th></th></tr></thead><tbody>`;
   h += withSched.map((p) => {
-    const c = p.comp, open = RS.compOpen[p.key], tot = c.known + c.missing.length;
+    const c = p.comp, open = RS.compOpen[p.key], tot = c.known + c.unknown + c.missing.length;
     const w = (n) => (tot ? ((n / tot) * 100).toFixed(1) : 0);
     const bk = c.buckets, bt = bk.reduce((x, y) => x + y, 0);
     return `<tr><td><div class="who"><div class="av" style="--c:${esc(p.color)}">${esc(initials(p.name))}</div><div><b>${esc(p.name)}</b><small>${p.first != null ? "Sheet since " + dmy(p.first, 1) : "No reports yet"}${c.pending ? ` · ${c.pending} due soon` : ""}</small></div></div></td>
-      <td style="min-width:170px"><div class="row" style="gap:10px;flex-wrap:nowrap;justify-content:flex-end"><div class="cbar" style="width:110px">${tot ? `<i style="width:${w(c.onTime)}%"></i><i class="late" style="width:${w(c.late.length)}%"></i><i class="miss" style="width:${w(c.missing.length)}%"></i>` : ""}</div><b class="cpc2 ${c.rate == null ? "" : c.rate >= 0.95 ? "ok" : c.rate >= 0.8 ? "warn" : "bad"}">${c.rate == null ? "—" : Math.round(c.rate * 100) + "%"}</b></div></td>
+      <td style="min-width:170px"><div class="row" style="gap:10px;flex-wrap:nowrap;justify-content:flex-end"><div class="cbar" style="width:110px">${tot ? `<i style="width:${w(c.onTime)}%"></i><i class="unk" style="width:${w(c.unknown)}%" title="Submitted, time not recorded"></i><i class="late" style="width:${w(c.late.length)}%"></i><i class="miss" style="width:${w(c.missing.length)}%"></i>` : ""}</div><b class="cpc2 ${c.rate == null ? "" : c.rate >= 0.95 ? "ok" : c.rate >= 0.8 ? "warn" : "bad"}">${c.rate == null ? "—" : Math.round(c.rate * 100) + "%"}</b></div></td>
       <td>${c.expected}</td><td>${c.onTime}</td><td>${c.late.length ? `<b style="color:var(--warn)">${c.late.length}</b>` : "0"}</td><td>${c.missing.length ? `<b style="color:var(--bad)">${c.missing.length}</b>` : "0"}</td>
       <td>${c.median == null ? (c.unknown ? `<span class="muted" title="Written before time tracking started">not recorded</span>` : "—") : `<b>${fmtDelay(c.median)}</b>`}</td>
       <td>${bt ? `<div class="spd" title="≤ ${fmtDelay(G)}: ${bk[0]} · up to 2h: ${bk[1]} · same day: ${bk[2]} · 1 day+: ${bk[3]}">${bk.map((n, k) => (n ? `<i class="b${k}" style="flex:${n}"></i>` : "")).join("")}</div>` : `<span class="muted">—</span>`}</td>
