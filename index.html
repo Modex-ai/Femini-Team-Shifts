@@ -342,7 +342,7 @@ input:focus,select:focus{outline:3px solid var(--lav);border-color:var(--brand-3
     </div>
     <div id="tlNote"></div>
     <div id="timeline"></div>
-    <div class="legend"><span><i class="lg"></i>Shift</span><span><i class="lg b"></i>Break</span><span><i class="lg x"></i>Extra shift</span><span><i class="lg" style="background:var(--bad);width:2px"></i>Now</span></div>
+    <div class="legend"><span><i class="lg"></i>Shift</span><span><i class="lg x"></i>Extra shift</span><span><i class="lg" style="background:var(--bad);width:2px"></i>Now</span><span>Breaks are flexible — taken anytime within the shift</span></div>
   </section>
 
   <section class="card">
@@ -403,10 +403,10 @@ const DEFAULT_DATA = {
     { id: "noha", name: "Noha", role: "Night Shift", color: "#2F3E7A" },
   ],
   breakRules: [
-    { upTo: 4, breaks: [{ at: 2, min: 30 }] },
-    { upTo: 6, breaks: [{ at: 3, min: 60 }] },
-    { upTo: 8, breaks: [{ at: 4, min: 60 }] },
-    { upTo: 12, breaks: [{ at: 3, min: 60 }, { at: 9, min: 60 }] },
+    { upTo: 4, breaks: [{ min: 30 }] },
+    { upTo: 6, breaks: [{ min: 60 }] },
+    { upTo: 8, breaks: [{ min: 60 }] },
+    { upTo: 12, breaks: [{ min: 60 }, { min: 60 }] },
   ],
   template: {
     0: [ // Sunday — Noha off
@@ -451,6 +451,15 @@ function fmtT(abs, compact) {
 }
 function fmtDur(min) { min = Math.max(0, Math.round(min)); const h = Math.floor(min / 60), m = min % 60; return h ? `${h}h${m ? " " + m + "m" : ""}` : `${m}m`; }
 const hrs = (min) => { const v = Math.round((min / 60) * 10) / 10; return v + "h"; };
+// short: "1h break · flexible" / "2 × 1h breaks"   long: adds the window for each break
+function breakText(b, long) {
+  const br = b.breaks;
+  if (!br.length) return "No break";
+  if (br.length === 1) return `${fmtDur(br[0].min)} break · flexible`;
+  const same = br.every((x) => x.min === br[0].min);
+  if (!long) return same ? `${br.length} × ${fmtDur(br[0].min)} breaks · flexible` : `Breaks ${br.map((x) => fmtDur(x.min)).join(" + ")} · flexible`;
+  return br.map((x) => `${fmtDur(x.min)} between ${fmtT(x.ws, 1)}–${fmtT(x.we, 1)}`).join(" · ");
+}
 
 const cairoFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Cairo", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
 function cairoNow() {
@@ -476,12 +485,14 @@ function resolveBlock(D, b, i) {
   const ds = hm(D.settings.dayStart), st = hm(b.start);
   const s = W0(D, i) + ((((st - ds) % 1440) + 1440) % 1440);
   const e = s + Math.round((+b.hours || 0) * 60);
+  // Breaks are flexible: each break is a time allowance, not a fixed slot.
+  // With several breaks the shift is split into equal parts and one break is taken anytime within each part.
   const custom = Array.isArray(b.breaks);
-  const raw = custom
-    ? b.breaks.map((x) => { const off = (((hm(x.start) - st) % 1440) + 1440) % 1440; return { s: s + off, e: s + off + (+x.min || 0) }; })
-    : ruleBreaks(D, +b.hours).map((x) => ({ s: s + x.at * 60, e: s + x.at * 60 + (+x.min || 0) }));
-  const breaks = raw.filter((x) => x.s >= s && x.e <= e && x.e > x.s).sort((a, c) => a.s - c.s);
-  return { ...b, s, e, breaks, work: e - s - breaks.reduce((a, x) => a + (x.e - x.s), 0), opIdx: i, custom };
+  const list = (custom ? b.breaks : ruleBreaks(D, +b.hours)).map((x) => +x.min || 0).filter((m) => m > 0);
+  const seg = list.length ? (e - s) / list.length : 0;
+  const breaks = list.map((min, k) => ({ min, ws: s + k * seg, we: s + (k + 1) * seg }));
+  const brMin = breaks.reduce((a, x) => a + x.min, 0);
+  return { ...b, s, e, breaks, work: Math.max(0, e - s - brMin), opIdx: i, custom };
 }
 function weekMembers(D, ws) {
   const w = D.weeks[iDate(ws)];
@@ -555,7 +566,10 @@ function normalize(d) {
   x.settings = Object.assign({}, DEFAULT_DATA.settings, x.settings || {});
   for (let k = 0; k < 7; k++) if (!Array.isArray(x.template[k])) x.template[k] = [];
   x.weeks = x.weeks || {}; x.members = x.members || []; x.breakRules = x.breakRules || [];
-  for (const w of Object.values(x.weeks)) { w.memberIds = w.memberIds || []; w.days = w.days || {}; for (let k = 0; k < 7; k++) w.days[k] = w.days[k] || { blocks: [], note: "" }; }
+  x.breakRules.forEach((r) => (r.breaks = (r.breaks || []).map((b) => ({ min: +b.min || 0 }))));
+  const fixBlocks = (l) => (l || []).forEach((b) => { if (Array.isArray(b.breaks)) b.breaks = b.breaks.map((y) => ({ min: +y.min || 0 })); });
+  Object.values(x.template || {}).forEach(fixBlocks);
+  for (const w of Object.values(x.weeks)) { w.memberIds = w.memberIds || []; w.days = w.days || {}; for (let k = 0; k < 7; k++) { w.days[k] = w.days[k] || { blocks: [], note: "" }; fixBlocks(w.days[k].blocks); } }
   x.version = 2;
   return x;
 }
@@ -631,7 +645,7 @@ function memberStatus(D, m, n) {
   all.sort((a, b) => a.s - b.s);
   const active = all.find((b) => n.abs >= b.s && n.abs < b.e);
   const today = all.filter((b) => b.opIdx === cur);
-  if (active) { const br = active.breaks.find((x) => n.abs >= x.s && n.abs < x.e); return { state: br ? "break" : "on", b: active, br }; }
+  if (active) return { state: "on", b: active };
   const next = all.find((b) => b.s > n.abs);
   if (!today.length) return { state: "off", next };
   if (today.every((b) => b.e <= n.abs)) return { state: "done", next };
@@ -647,12 +661,8 @@ function renderLive() {
     if (st.state === "on" || st.state === "break") {
       onN++;
       bar = `<div class="bar"><i style="width:${(((n.abs - st.b.s) / (st.b.e - st.b.s)) * 100).toFixed(1)}%"></i></div>`;
-      if (st.state === "break") { pill = `<span class="st break"><i></i>On break</span>`; det = `Back at <b>${fmtT(st.br.e)}</b> · ${fmtDur(st.br.e - n.abs)} left`; }
-      else {
-        const nb = st.b.breaks.find((x) => x.s > n.abs);
-        pill = `<span class="st on"><i></i>On shift${st.b.extra ? " · Extra" : ""}</span>`;
-        det = `Ends <b>${fmtT(st.b.e)}</b> · ${fmtDur(st.b.e - n.abs)} left` + (nb ? `<br>Next break ${fmtT(nb.s)}` : "");
-      }
+      pill = `<span class="st on"><i></i>On shift${st.b.extra ? " · Extra" : ""}</span>`;
+      det = `Ends <b>${fmtT(st.b.e)}</b> · ${fmtDur(st.b.e - n.abs)} left<br>${breakText(st.b)}`;
     } else {
       const lab = { off: "Day off", done: "Shift completed", later: "Off shift" }[st.state];
       pill = `<span class="st ${st.state}"><i></i>${lab}</span>`;
@@ -679,8 +689,7 @@ function renderTimeline() {
     h += `<div class="tl-row" style="--c:${esc(m.color)}"><div class="lbl"><span class="dot"></span>${esc(m.name)}</div><div class="track">`;
     for (const b of mb) {
       const s = Math.max(a, b.s), e = Math.min(a + 1440, b.e), w = e - s;
-      h += `<div class="blk ${b.extra ? "extra" : ""}" style="left:${pos(s)};width:${((w / 1440) * 100).toFixed(3)}%" title="${esc(m.name)}: ${fmtT(b.s)} – ${fmtT(b.e)}${b.extra ? " (Extra)" : ""}">`;
-      for (const br of b.breaks) h += `<i class="brk" style="left:${(((br.s - s) / w) * 100).toFixed(2)}%;width:${(((br.e - br.s) / w) * 100).toFixed(2)}%" title="Break ${fmtT(br.s)} – ${fmtT(br.e)}"></i>`;
+      h += `<div class="blk ${b.extra ? "extra" : ""}" style="left:${pos(s)};width:${((w / 1440) * 100).toFixed(3)}%" title="${esc(m.name)}: ${fmtT(b.s)} – ${fmtT(b.e)}${b.extra ? " (Extra)" : ""} · ${breakText(b, 1)}">`;
       h += `<span>${fmtT(b.s, 1)} – ${fmtT(b.e, 1)}</span></div>`;
     }
     if (n.abs >= a && n.abs < a + 1440) h += `<div class="nowline" style="left:${pos(n.abs)}"></div>`;
@@ -705,7 +714,7 @@ function weekTableHTML(D, ws, forExport) {
       if (!mb.length) h += `<span class="offc">Off</span>`;
       for (const b of mb) {
         const prev = Math.floor(b.s / 1440) < i ? `<small>from ${DY[wdOf(i - 1)]} night</small>` : "";
-        const brs = b.breaks.length ? `<small>Break ${b.breaks.map((x) => fmtT(x.s, 1)).join(" & ")}</small>` : "";
+        const brs = `<small>${breakText(b)}</small>`;
         h += `<span class="slot"><b>${fmtT(b.s, 1)} – ${fmtT(b.e, 1)}</b>${prev}${brs}${b.extra ? `<span class="xb">Extra</span>` : ""}</span>`;
       }
       h += `</td>`;
@@ -722,7 +731,7 @@ function renderWeek() {
   $("#wkSub").innerHTML = (S.weekOffset === 0 ? "This week · " : S.weekOffset === 1 ? "Next week · " : S.weekOffset === -1 ? "Last week · " : "") +
     (created ? `<span class="chip-s pub">● Published week</span>` : `<span class="chip-s tpl">Default template</span>`);
   $("#wkTbl").innerHTML = weekTableHTML(D, ws);
-  $("#wkFoot").textContent = `Each schedule day starts at ${fmtT(hm(D.settings.dayStart))}${dayOff(D) < 0 ? " the evening before" : ""}, so night shifts count toward the morning they end. Hours exclude breaks.`;
+  $("#wkFoot").textContent = `Each schedule day starts at ${fmtT(hm(D.settings.dayStart))}${dayOff(D) < 0 ? " the evening before" : ""}, so night shifts count toward the morning they end. Breaks are flexible — taken anytime within the shift (12h shifts: one in each half). Hours exclude breaks.`;
   // week select: created weeks + current view
   const keys = new Set(Object.keys(D.weeks)); keys.add(iDate(ws)); keys.add(iDate(wkStart(D, curIdx())));
   $("#wkSelect").innerHTML = [...keys].sort().map((k) => { const i = dIdx(k); return `<option value="${k}" ${i === ws ? "selected" : ""}>${dmy(i)} – ${dmy(i + 6)}${D.weeks[k] ? "" : " (template)"}</option>`; }).join("");
@@ -755,7 +764,7 @@ function dayText(D, i) {
   let t = `Fémini · Shift schedule — ${DAYS[wdOf(i)]}, ${dmy(i)}\n`;
   for (const b of blocks) {
     const m = mem.find((x) => x.id === b.member);
-    t += `• ${m.name}: ${fmtT(b.s)} – ${fmtT(b.e)}${b.extra ? " (Extra)" : ""}` + (b.breaks.length ? ` · Break ${b.breaks.map((x) => fmtT(x.s, 1) + "–" + fmtT(x.e, 1)).join(", ")}` : "") + "\n";
+    t += `• ${m.name}: ${fmtT(b.s)} – ${fmtT(b.e)}${b.extra ? " (Extra)" : ""}` + ` · ${breakText(b, 1)}` + "\n";
   }
   const offs = mem.filter((m) => !blocks.some((b) => b.member === m.id)).map((m) => m.name);
   if (offs.length) t += `Day off: ${offs.join(", ")}\n`;
@@ -773,7 +782,7 @@ function cardHTML(D, m, ws) {
     if (!mb.length) return `<div class="xd off">${dn}<div class="sl"><div class="tm">Day off</div></div></div>`;
     return `<div class="xd ${i === ci ? "today" : ""}">${dn}<div class="sl">${mb.map((b) =>
       `<div class="tm">${fmtT(b.s)} – ${fmtT(b.e)}${b.extra ? `<span class="tg">Extra</span>` : ""}</div>` +
-      `<div class="bk">${Math.floor(b.s / 1440) < i ? `Starts ${DAYS[wdOf(i - 1)]} night · ` : ""}${b.breaks.length ? "Break " + b.breaks.map((x) => fmtT(x.s, 1) + "–" + fmtT(x.e, 1)).join(" & ") : "No break"}</div>`).join("")}</div></div>`;
+      `<div class="bk">${Math.floor(b.s / 1440) < i ? `Starts ${DAYS[wdOf(i - 1)]} night · ` : ""}${breakText(b, 1)}</div>`).join("")}</div></div>`;
   }).join("");
   return `<div class="xcard" style="--c:${esc(m.color)}">
     <div class="xtop"><img src="assets/logo-white.png" alt=""><div class="xr"><div class="xey">Weekly Shift Schedule</div><div class="xwk">${dmy(ws)} – ${dmy(ws + 6, 1)}</div></div></div>
@@ -790,7 +799,7 @@ function reportHTML(D, ws) {
       <div class="r"><b>${dmy(ws)} – ${dmy(ws + 6, 1)}</b>${created ? "Published schedule" : "Default template"} · Cairo time</div></div>
     <div class="xk"><div><span>Team members</span><b>${st.mem.length}</b></div><div><span>Total working hours</span><b>${hrs(st.total)}</b></div><div><span>Days off</span><b>${st.off}</b></div><div><span>Extra shifts</span><b>${st.extra}</b></div><div><span>Coverage</span><b style="color:${st.gaps ? "var(--bad)" : "var(--ok)"}">${st.gaps ? st.gaps + " gaps" : "24/7"}</b></div></div>
     <div class="xt"><table class="wk">${weekTableHTML(D, ws, true)}</table></div>
-    <div class="xf"><span>Each schedule day starts at ${fmtT(hm(D.settings.dayStart))}${dayOff(D) < 0 ? " the evening before" : ""}. Hours exclude breaks.</span><span>Issued ${dmy(cairoNow().idx, 1)} · Fémini</span></div></div>`;
+    <div class="xf"><span>Each schedule day starts at ${fmtT(hm(D.settings.dayStart))}${dayOff(D) < 0 ? " the evening before" : ""}. Breaks are flexible within each shift; hours exclude breaks.</span><span>Issued ${dmy(cairoNow().idx, 1)} · Fémini</span></div></div>`;
 }
 async function exportImage(html, filename, share) {
   const stage = $("#exportStage");
@@ -852,10 +861,10 @@ function blocksEditor(D, list, path, i, members) {
       <button class="btn sm danger" data-act="delItem" data-path="${path}" data-i="${k}">Remove</button>
       <div class="brks"><span class="muted">Breaks:</span>`;
     if (!custom) {
-      h += (r.breaks.length ? r.breaks.map((x) => `<span class="b">${fmtT(x.s, 1)} – ${fmtT(x.e, 1)}</span>`).join("") : `<span class="muted">None</span>`) +
-        `<span class="muted" style="font-size:11.5px">auto by shift length</span><button class="btn sm" data-act="customBreaks" data-path="${p}">Customize</button>`;
+      h += `<span class="b">${esc(breakText(r, 1))}</span><span class="muted" style="font-size:11.5px">auto by shift length</span><button class="btn sm" data-act="customBreaks" data-path="${p}">Customize</button>`;
     } else {
-      b.breaks.forEach((x, j) => { h += `<span class="b"><input type="time" step="900" data-path="${p}.breaks.${j}.start" value="${esc(x.start)}"><input type="number" min="5" step="5" style="width:64px" data-path="${p}.breaks.${j}.min" value="${esc(x.min)}"> min<button class="btn sm ghost" data-act="delItem" data-path="${p}.breaks" data-i="${j}">✕</button></span>`; });
+      b.breaks.forEach((x, j) => { h += `<span class="b">Break ${j + 1}<input type="number" min="5" step="5" style="width:68px" data-path="${p}.breaks.${j}.min" value="${esc(x.min)}"> min<button class="btn sm ghost" data-act="delItem" data-path="${p}.breaks" data-i="${j}">✕</button></span>`; });
+      if (b.breaks.length > 1) h += `<span class="muted" style="font-size:11.5px">${esc(breakText(r, 1))}</span>`;
       h += `<button class="btn sm" data-act="addBreak" data-path="${p}.breaks">+ Break</button><button class="btn sm ghost" data-act="autoBreaks" data-path="${p}">Back to auto</button>`;
     }
     h += `</div></div>`;
@@ -919,10 +928,10 @@ function renderAdmin() {
       ${blocksEditor(fake, D.template[wd], `template.${wd}`, i, D.members)}
       <div class="row" style="margin-top:12px"><span class="muted" style="font-size:12px">Copy pattern from:</span>${DAYS.map((d, k) => (k === wd ? "" : `<button class="btn sm ghost" data-act="tplCopy" data-i="${k}">${DY[k]}</button>`)).join("")}</div></div>`;
   } else if (A.tab === "breaks") {
-    body += `<p class="muted" style="margin-top:0">Automatic breaks by shift length. "After" = hours from the shift start. Any single shift can override its breaks.</p>`;
+    body += `<p class="muted" style="margin-top:0">Break allowance by shift length. Breaks have no fixed time — each team member takes them whenever suits the work. With two or more breaks, the shift is split into equal parts and one break is taken anytime within each part (e.g. a 12h shift: one hour in the first 6h, one in the second 6h). Any single shift can override its allowance.</p>`;
     D.breakRules.forEach((r, k) => {
       body += `<div class="rrow"><div class="row"><span>Shifts up to</span><input type="number" min="0.5" step="0.5" style="width:80px" data-path="breakRules.${k}.upTo" value="${esc(r.upTo)}"><span>hours</span><button class="btn sm danger" data-act="delItem" data-path="breakRules" data-i="${k}" style="margin-left:auto">Delete rule</button></div><div class="row">`;
-      (r.breaks || []).forEach((x, j) => { body += `<span class="brks"><span class="b">After <input type="number" min="0" step="0.5" style="width:64px" data-path="breakRules.${k}.breaks.${j}.at" value="${esc(x.at)}"> h — <input type="number" min="5" step="5" style="width:64px" data-path="breakRules.${k}.breaks.${j}.min" value="${esc(x.min)}"> min<button class="btn sm ghost" data-act="delItem" data-path="breakRules.${k}.breaks" data-i="${j}">✕</button></span></span>`; });
+      (r.breaks || []).forEach((x, j) => { body += `<span class="brks"><span class="b">Break ${j + 1} <input type="number" min="5" step="5" style="width:68px" data-path="breakRules.${k}.breaks.${j}.min" value="${esc(x.min)}"> min<button class="btn sm ghost" data-act="delItem" data-path="breakRules.${k}.breaks" data-i="${j}">✕</button></span></span>`; });
       body += `<button class="btn sm" data-act="addRuleBreak" data-path="breakRules.${k}.breaks">+ Break</button></div></div>`;
     });
     body += `<button class="btn sm" data-act="addRule">+ Add rule</button>`;
@@ -1003,9 +1012,9 @@ document.addEventListener("click", async (e) => {
       return R();
     }
     case "delItem": getPath(D, p).splice(i, 1); return R();
-    case "customBreaks": { const b = getPath(D, p), r = resolveBlock(D, b, 0); b.breaks = r.breaks.map((x) => ({ start: toHM(x.s), min: x.e - x.s })); if (!b.breaks.length) b.breaks.push({ start: toHM(hm(b.start) + 120), min: 60 }); return R(); }
+    case "customBreaks": { const b = getPath(D, p), r = resolveBlock(D, b, 0); b.breaks = r.breaks.map((x) => ({ min: x.min })); if (!b.breaks.length) b.breaks.push({ min: 60 }); return R(); }
     case "autoBreaks": delete getPath(D, p).breaks; return R();
-    case "addBreak": { const l = getPath(D, p), lst = l[l.length - 1]; l.push({ start: lst ? toHM(hm(lst.start) + 180) : "12:00", min: 60 }); return R(); }
+    case "addBreak": getPath(D, p).push({ min: 60 }); return R();
     case "createWeek": D.weeks[wkKey()] = buildWeek(D, viewWS(), el.dataset.src); S.admin.day = 0; return R();
     case "newWeekGo": {
       const d = $("#newDate").value; if (!d) return toast("Pick a date", true);
@@ -1042,8 +1051,8 @@ document.addEventListener("click", async (e) => {
       for (const w of Object.values(D.weeks)) { w.memberIds = w.memberIds.filter((x) => x !== m.id); for (const k in w.days) w.days[k].blocks = w.days[k].blocks.filter((b) => b.member !== m.id); }
       return R();
     }
-    case "addRule": D.breakRules.push({ upTo: 10, breaks: [{ at: 4, min: 60 }] }); return R();
-    case "addRuleBreak": getPath(D, p).push({ at: 2, min: 30 }); return R();
+    case "addRule": D.breakRules.push({ upTo: 10, breaks: [{ min: 60 }] }); return R();
+    case "addRuleBreak": getPath(D, p).push({ min: 30 }); return R();
     case "export": { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(S.draft, null, 2)], { type: "application/json" })); a.download = `femini-shifts-backup-${cairoNow().date}.json`; a.click(); return; }
     case "logout": S.pin = ""; sessionStorage.removeItem("fs_pin"); S.draft = null; return closeAdmin();
   }
