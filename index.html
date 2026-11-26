@@ -150,7 +150,7 @@ tr.notes td{font-size:11.5px;color:var(--warn);text-align:center}
 .people{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
 .pc{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
 .pc-h{background:linear-gradient(135deg,var(--plum),var(--brand));color:#fff;padding:16px;display:flex;align-items:center;gap:12px}
-.pc-h .av{box-shadow:0 0 0 3px rgba(255,255,255,.25)}
+.pc-h .av{box-shadow:none;border:3px solid rgba(255,255,255,.25);background-clip:padding-box}
 .pc-h .n{font-family:var(--serif);font-size:22px;font-weight:600;line-height:1}
 .pc-h .r{font-size:11.5px;opacity:.7;margin-top:3px}
 .pc-h .h{margin-left:auto;text-align:right}
@@ -219,7 +219,7 @@ input:focus,select:focus{outline:3px solid var(--lav);border-color:var(--brand-3
 .xcard .xwk{font-size:22px;color:rgba(255,255,255,.75);margin-top:8px}
 .xcard .xline{height:1px;background:linear-gradient(90deg,rgba(217,195,142,.8),rgba(217,195,142,0));margin:42px 0 36px}
 .xcard .xwho{display:flex;align-items:center;gap:26px}
-.xcard .xav{width:104px;height:104px;border-radius:50%;background:var(--c);display:grid;place-items:center;font-size:40px;font-weight:700;box-shadow:0 0 0 6px rgba(255,255,255,.14)}
+.xcard .xav{width:116px;height:116px;border-radius:50%;background:var(--c);display:grid;place-items:center;font-size:42px;font-weight:700;border:6px solid rgba(255,255,255,.16);background-clip:padding-box;flex:none}
 .xcard .xname{font-family:var(--serif);font-size:84px;font-weight:600;line-height:.95}
 .xcard .xrole{font-size:22px;color:rgba(255,255,255,.7);margin-top:10px}
 .xcard .xpanel{background:#fff;color:var(--ink);border-radius:26px;margin-top:40px;padding:14px 34px;box-shadow:0 24px 60px rgba(0,0,0,.25)}
@@ -342,7 +342,7 @@ input:focus,select:focus{outline:3px solid var(--lav);border-color:var(--brand-3
     </div>
     <div id="tlNote"></div>
     <div id="timeline"></div>
-    <div class="legend"><span><i class="lg"></i>Shift</span><span><i class="lg x"></i>Extra shift</span><span><i class="lg" style="background:var(--bad);width:2px"></i>Now</span><span>Breaks are flexible — taken anytime within the shift</span></div>
+    <div class="legend"><span><i class="lg"></i>Shift</span><span><i class="lg x"></i>Extra shift</span><span><i class="lg" style="background:var(--bad);width:2px"></i>Now</span><span>Breaks are flexible — never in a shift's first or last hour</span></div>
   </section>
 
   <section class="card">
@@ -395,7 +395,7 @@ const NORMAL = [
 const DEFAULT_DATA = {
   version: 2,
   updatedAt: null,
-  settings: { dayStart: "23:00", weekStart: 0 },
+  settings: { dayStart: "23:00", weekStart: 0, breakBuffer: 60 },
   members: [
     { id: "sherine", name: "Sherine", role: "Morning Shift", color: "#6A55A8" },
     { id: "rawan", name: "Rawan", role: "Evening Shift · with Menna", color: "#B0578D" },
@@ -453,12 +453,12 @@ function fmtDur(min) { min = Math.max(0, Math.round(min)); const h = Math.floor(
 const hrs = (min) => { const v = Math.round((min / 60) * 10) / 10; return v + "h"; };
 // short: "1h break · flexible" / "2 × 1h breaks"   long: adds the window for each break
 function breakText(b, long) {
-  const br = b.breaks;
-  if (!br.length) return "No break";
-  if (br.length === 1) return `${fmtDur(br[0].min)} break · flexible`;
+  const br = b.breaks, win = (x) => `${fmtT(x.ws, 1)}–${fmtT(x.we, 1)}`;
+  if (!br.length) return long && b.flex ? `Flexible break · anytime ${win(b.flex)}` : "Flexible break";
+  if (br.length === 1) return long ? `${fmtDur(br[0].min)} flexible break · anytime ${win(br[0])}` : `${fmtDur(br[0].min)} break · flexible`;
   const same = br.every((x) => x.min === br[0].min);
   if (!long) return same ? `${br.length} × ${fmtDur(br[0].min)} breaks · flexible` : `Breaks ${br.map((x) => fmtDur(x.min)).join(" + ")} · flexible`;
-  return br.map((x) => `${fmtDur(x.min)} between ${fmtT(x.ws, 1)}–${fmtT(x.we, 1)}`).join(" · ");
+  return br.map((x) => `${fmtDur(x.min)} between ${win(x)}`).join(" · ");
 }
 
 const cairoFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Cairo", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" });
@@ -488,11 +488,15 @@ function resolveBlock(D, b, i) {
   // Breaks are flexible: each break is a time allowance, not a fixed slot.
   // With several breaks the shift is split into equal parts and one break is taken anytime within each part.
   const custom = Array.isArray(b.breaks);
+  // No break is allowed in the first or last `breakBuffer` minutes of a shift.
   const list = (custom ? b.breaks : ruleBreaks(D, +b.hours)).map((x) => +x.min || 0).filter((m) => m > 0);
-  const seg = list.length ? (e - s) / list.length : 0;
-  const breaks = list.map((min, k) => ({ min, ws: s + k * seg, we: s + (k + 1) * seg }));
+  const buf = Math.max(0, +(D.settings.breakBuffer ?? 60) || 0);
+  const a0 = e - s > 2 * buf ? s + buf : s, a1 = e - s > 2 * buf ? e - buf : e;
+  const flex = { ws: a0, we: a1 };
+  const seg = list.length ? (a1 - a0) / list.length : 0;
+  const breaks = list.map((min, k) => ({ min, ws: a0 + k * seg, we: a0 + (k + 1) * seg }));
   const brMin = breaks.reduce((a, x) => a + x.min, 0);
-  return { ...b, s, e, breaks, work: Math.max(0, e - s - brMin), opIdx: i, custom };
+  return { ...b, s, e, breaks, flex, work: Math.max(0, e - s - brMin), opIdx: i, custom };
 }
 function weekMembers(D, ws) {
   const w = D.weeks[iDate(ws)];
@@ -731,7 +735,7 @@ function renderWeek() {
   $("#wkSub").innerHTML = (S.weekOffset === 0 ? "This week · " : S.weekOffset === 1 ? "Next week · " : S.weekOffset === -1 ? "Last week · " : "") +
     (created ? `<span class="chip-s pub">● Published week</span>` : `<span class="chip-s tpl">Default template</span>`);
   $("#wkTbl").innerHTML = weekTableHTML(D, ws);
-  $("#wkFoot").textContent = `Each schedule day starts at ${fmtT(hm(D.settings.dayStart))}${dayOff(D) < 0 ? " the evening before" : ""}, so night shifts count toward the morning they end. Breaks are flexible — taken anytime within the shift (12h shifts: one in each half). Hours exclude breaks.`;
+  $("#wkFoot").textContent = `Each schedule day starts at ${fmtT(hm(D.settings.dayStart))}${dayOff(D) < 0 ? " the evening before" : ""}, so night shifts count toward the morning they end. Breaks are flexible — taken anytime except the first and last ${fmtDur(+(D.settings.breakBuffer ?? 60))} of the shift. Hours exclude set break allowances.`;
   // week select: created weeks + current view
   const keys = new Set(Object.keys(D.weeks)); keys.add(iDate(ws)); keys.add(iDate(wkStart(D, curIdx())));
   $("#wkSelect").innerHTML = [...keys].sort().map((k) => { const i = dIdx(k); return `<option value="${k}" ${i === ws ? "selected" : ""}>${dmy(i)} – ${dmy(i + 6)}${D.weeks[k] ? "" : " (template)"}</option>`; }).join("");
@@ -929,6 +933,7 @@ function renderAdmin() {
       <div class="row" style="margin-top:12px"><span class="muted" style="font-size:12px">Copy pattern from:</span>${DAYS.map((d, k) => (k === wd ? "" : `<button class="btn sm ghost" data-act="tplCopy" data-i="${k}">${DY[k]}</button>`)).join("")}</div></div>`;
   } else if (A.tab === "breaks") {
     body += `<p class="muted" style="margin-top:0">Break allowance by shift length. Breaks have no fixed time — each team member takes them whenever suits the work. With two or more breaks, the shift is split into equal parts and one break is taken anytime within each part (e.g. a 12h shift: one hour in the first 6h, one in the second 6h). Any single shift can override its allowance.</p>`;
+    body += `<div class="panel"><div class="row"><span>No breaks in the first and last</span><input type="number" min="0" step="15" style="width:80px" data-path="settings.breakBuffer" value="${esc(D.settings.breakBuffer ?? 60)}"><span>minutes of every shift</span></div><div class="muted" style="font-size:12px;margin-top:6px">Shifts with no matching rule show "Flexible break" — the team member decides when, inside the allowed window.</div></div>`;
     D.breakRules.forEach((r, k) => {
       body += `<div class="rrow"><div class="row"><span>Shifts up to</span><input type="number" min="0.5" step="0.5" style="width:80px" data-path="breakRules.${k}.upTo" value="${esc(r.upTo)}"><span>hours</span><button class="btn sm danger" data-act="delItem" data-path="breakRules" data-i="${k}" style="margin-left:auto">Delete rule</button></div><div class="row">`;
       (r.breaks || []).forEach((x, j) => { body += `<span class="brks"><span class="b">Break ${j + 1} <input type="number" min="5" step="5" style="width:68px" data-path="breakRules.${k}.breaks.${j}.min" value="${esc(x.min)}"> min<button class="btn sm ghost" data-act="delItem" data-path="breakRules.${k}.breaks" data-i="${j}">✕</button></span></span>`; });
